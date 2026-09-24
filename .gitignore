@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+data-preparation/3-rename-genes/input/
+data-preparation/3-rename-genes/output/
