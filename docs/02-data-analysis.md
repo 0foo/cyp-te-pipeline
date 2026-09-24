@@ -22,8 +22,9 @@ Folder: `data-analysis/1-pair-te-with-cyp/`. Three scripts, run in order, per sp
 | 3 | `CleanAnnasse.py` | 1 `toClean` → `GenesAffectedByTEs.txt`; 3 `aliasToFind` → `Reg_Gene_Full.txt` | the above + Cyp list | `DAnasse_TE_Cyp.txt` |
 
 ```bash
-mkdir -p ~/runs/ananassae && cd ~/runs/ananassae
-S=~/projects/cyp-te-pipeline/data-analysis/1-pair-te-with-cyp
+REPO=/path/to/cyp-te-pipeline
+mkdir -p runs/ananassae && cd runs/ananassae      # any scratch directory
+S=$REPO/data-analysis/1-pair-te-with-cyp
 python3 $S/repeatOpp.py && python3 $S/Locate_TE.py && python3 $S/CleanAnnasse.py
 mv DAnasse_TE_Cyp.txt D_ananassaeGenesAffectedByTE.txt
 ```
@@ -52,9 +53,10 @@ The output file is always called `DAnasse_TE_Cyp.txt` (it was written for *D. an
 - **Substring matching.** `Cyp4g1` also matches `Cyp4g15`. Column 2's label is the first list
   entry found, which may not be the gene's own name when names nest.
 
-**Check:** for *D. ananassae*, running steps 2–3 on the committed `filtered.gff` reproduces
-`~/projects/cyp-project-forensics/pipeline-scripts-output/DAnasse_TE_Cyp.txt` exactly (apart from CRLF
-line endings).
+**Check:** everything needed is in `datasets/ananassae-reference/`. Point `Locate_TE.py` at
+its `filtered.gff` and `Drosophila_ananassae.GCF_017639315.1.rm.fna.out`, run steps 2–3, and
+the outputs match its `GenesAffectedByTEs.txt` and `DAnasse_TE_Cyp.txt` exactly (apart from
+CRLF line endings).
 
 ---
 
@@ -71,7 +73,7 @@ their transcripts/exons/introns, the TEs, and predicted transcription-factor bin
 (JASPAR insect motifs plus the CncC:Maf-S motif, scanned with FIMO).
 
 ```bash
-S=~/projects/cyp-te-pipeline/data-analysis/2-combine-and-compare
+S=$REPO/data-analysis/2-combine-and-compare
 python3 $S/build_tfbs_te_gff.py \
   --te-hits D_ananassaeGenesAffectedByTE.txt \
   --annotation-gff DROSOPHILA_ANANASSAE_final_withDmelNames.gff \

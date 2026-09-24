@@ -35,8 +35,9 @@ $EDITOR rmodeler.conf        # set IN_DIR, WORK_DIR, OUT_DIR, STATE_DIR, LOG_DIR
 ./rm-manager.sh status
 ```
 
-Full reference for the automation (restarts, signals, sizing): the original repository's
-`README.md` and `docs/SOURCE.md` in `~/projects/repeat-modeler-automation/`.
+Full reference for the automation (restarts, signals, sizing):
+[`repeat-modeler-automation/README.md`](repeat-modeler-automation/README.md) and
+[`repeat-modeler-automation/SOURCE.md`](repeat-modeler-automation/SOURCE.md).
 
 The lab originally ran the same two tools by hand (`spinContainer.sh`, `runMasker.sh`); the
 automation replaces that and produces the same `.out` format.
@@ -60,7 +61,7 @@ Folder: `data-preparation/2-orthogroup-table/`
 **Use the table they produced:**
 
 ```
-~/projects/cyp-project-forensics/to_organize/hog_og/HOG_OG_association_gene_names_without_duplicates_10_31.tsv
+datasets/hog-table/HOG_OG_association_gene_names_without_duplicates_10_31.tsv
 ```
 
 One row per hierarchical orthogroup (HOG), one column per species. That is `config.py`'s
@@ -82,11 +83,14 @@ list match across species.
 
 ### 3a. Get the annotations
 
-Zenodo record [18453526](https://zenodo.org/records/18453526), 1.76 GB. Zenodo serves it at
+*D. ananassae*'s annotation is already in
+`datasets/ananassae-reference/DROSOPHILA_ANANASSAE_final.gff.gz`; skip to 3b to try the
+pipeline on it. For any other species, download the full set from Zenodo record
+[18453526](https://zenodo.org/records/18453526), 1.76 GB, to a local folder. Zenodo serves it at
 about 1–2.5 MB/s whatever you do, so allow 15–25 minutes.
 
 ```bash
-mkdir -p ~/dl-staging && cd ~/dl-staging
+mkdir -p zenodo && cd zenodo
 curl -L -C - --retry 10 -o annotations.tar.gz \
   "https://zenodo.org/api/records/18453526/files/annotations.tar.gz/content"
 md5sum annotations.tar.gz                   # must be d7cd2d6d0b98b4d51036b05c619c590b
@@ -101,10 +105,11 @@ The script processes **every** species whose file is in the input folder, so put
 ones you want:
 
 ```bash
-cd ~/projects/cyp-te-pipeline/data-preparation/3-rename-genes
+cd data-preparation/3-rename-genes          # from the repository root
 mkdir -p input
-gunzip -c ~/dl-staging/annotations/gffs/DROSOPHILA_ANANASSAE_final.gff.gz \
+gunzip -c ../../datasets/ananassae-reference/DROSOPHILA_ANANASSAE_final.gff.gz \
   > input/DROSOPHILA_ANANASSAE_final.gff
+# other species: gunzip -c /path/to/zenodo/annotations/gffs/<SPECIES>_final.gff.gz > input/…
 ```
 
 Species names are the HOG table's column headers (`DROSOPHILA_ANANASSAE`,
@@ -142,10 +147,10 @@ were. *D. melanogaster* itself (and `MUSCA_DOMESTICA`) is skipped — it needs n
 ### Checking it worked
 
 Run `repeatOpp.py` (data analysis step 1) on the output. For *D. ananassae* the resulting
-`filtered.gff` must be identical to the lab's committed
-`~/projects/cyp-project-forensics/pipeline-scripts-output/filtered.gff` (166 lines) once its Windows line
-endings are removed:
+`filtered.gff` must be identical to the lab's own, kept in
+`datasets/ananassae-reference/filtered.gff` (166 lines), once its Windows line endings are
+removed:
 
 ```bash
-cmp <(tr -d '\r' < ~/projects/cyp-project-forensics/pipeline-scripts-output/filtered.gff) filtered.gff
+cmp <(tr -d '\r' < datasets/ananassae-reference/filtered.gff) filtered.gff
 ```

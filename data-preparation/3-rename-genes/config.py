@@ -19,9 +19,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # cannot be parsed; the undated version does not reproduce the lab's results.
 STEP5_INPUT = os.environ.get(
     "STEP5_INPUT",
-    os.path.expanduser(
-        "~/projects/cyp-project-forensics/to_organize/hog_og/"
-        "HOG_OG_association_gene_names_without_duplicates_10_31.tsv"
+    os.path.join(
+        HERE, "..", "..", "datasets", "hog-table",
+        "HOG_OG_association_gene_names_without_duplicates_10_31.tsv",
     ),
 )
 

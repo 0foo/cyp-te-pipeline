@@ -3,9 +3,11 @@
 Where every file in this folder came from, what was reconstructed, and the evidence behind
 choosing this path. Assembled 2026-09-24.
 
-The lab's code and data are treated as evidence: nothing in `~/projects/cyp-project-forensics` or
-`~/projects/repeat-modeler-automation` was changed to build this. The forensic write-up these
-findings come from is `~/projects/cyp-project-forensics/docs/deep/06-final-final-gff.md`.
+Everything needed is inside this repository. The paths below record where each file was
+copied *from* — the lab's archive (`cyp-project-forensics`) and the automation repository
+(`repeat-modeler-automation`, also at github.com/0foo/repeat-modeler-automation). Neither was
+changed, and neither is needed to use this repository. The full forensic write-up is
+`docs/deep/06-final-final-gff.md` in `cyp-project-forensics`.
 
 ---
 
@@ -34,12 +36,19 @@ The last four were **renamed** on copy (` 1` / ` 1 1` suffixes dropped): `compar
 and `compare_te_cyp_xenobiotic` do `import compare_te_cyp_exposure`, which cannot work with a
 space in the filename. Contents are unchanged.
 
-To re-verify:
+The automation's own documentation is copied alongside, unchanged:
+`docs/repeat-modeler-automation/README.md` and `SOURCE.md`.
 
-```bash
-cd ~/projects && sha256sum cyp-te-pipeline/data-analysis/1-pair-te-with-cyp/repeatOpp.py \
-  cyp-project-forensics/pipeline-scripts-output/repeatOpp.py
-```
+## Copied data — `datasets/`
+
+| Here | Original | SHA-256 |
+|---|---|---|
+| `datasets/hog-table/HOG_OG_association_gene_names_without_duplicates_10_31.tsv` | `cyp-project-forensics/to_organize/hog_og/` (same name) | `621473f9336d` |
+| `datasets/ananassae-reference/DROSOPHILA_ANANASSAE_final.gff.gz` | Zenodo 18453526 `annotations.tar.gz` → `gffs/` | `c4c45316db82` |
+| `datasets/ananassae-reference/Drosophila_ananassae.GCF_017639315.1.rm.fna.out` | `cyp-project-forensics/pipeline-scripts-output/DA_Files/` | `15a67b0c7ce5` |
+| `datasets/ananassae-reference/filtered.gff` | `cyp-project-forensics/pipeline-scripts-output/` | `103aae2c7b4a` |
+| `datasets/ananassae-reference/GenesAffectedByTEs.txt` | `cyp-project-forensics/pipeline-scripts-output/` | `b094e1a1e22f` |
+| `datasets/ananassae-reference/DAnasse_TE_Cyp.txt` | `cyp-project-forensics/pipeline-scripts-output/` | `53d76f762d82` |
 
 ---
 

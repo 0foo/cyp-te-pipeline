@@ -7,8 +7,11 @@ and whether that differs between species with high and low xenobiotic exposure.
 Every script here is a **byte-for-byte copy** of a lab original (checksums in
 [`docs/03-provenance.md`](docs/03-provenance.md)). The one exception is
 `data-preparation/3-rename-genes/config.py`, a reconstruction of a lost lab file, labelled as
-such and validated against the lab's own results. The originals stay untouched in
-`~/projects/cyp-project-forensics` and `~/projects/repeat-modeler-automation`.
+such and validated against the lab's own results.
+
+The repository is self-contained: the orthogroup table and a complete *D. ananassae* reference
+set are in [`datasets/`](datasets/). The only thing downloaded separately is the Zenodo
+annotation archive (1.76 GB) for species other than *D. ananassae*.
 
 ## The pipeline
 
@@ -37,7 +40,9 @@ HOG table (_10_31) ─────────┘   (NEW_Step_5)      withDmelNa
 | [`data-preparation/3-rename-genes/`](data-preparation/3-rename-genes/) | `NEW_Step_5_…` + reconstructed `config.py` — relabels each species' genes with *D. melanogaster* ortholog names |
 | [`data-analysis/1-pair-te-with-cyp/`](data-analysis/1-pair-te-with-cyp/) | `repeatOpp.py`, `Locate_TE.py`, `CleanAnnasse.py`, `Reg_Gene_Full.txt` — Cyp genes × nearby TEs |
 | [`data-analysis/2-combine-and-compare/`](data-analysis/2-combine-and-compare/) | `build_tfbs_te_gff.py`, `compare_te_cyp_{exposure,cncc,xenobiotic}.py` — combined annotation, then the cross-species statistics |
+| [`datasets/`](datasets/) | the HOG table, and the *D. ananassae* inputs and lab outputs used to check the pipeline |
 | [`docs/`](docs/) | how to run each step, and where every file came from |
+| [`NOTES.md`](NOTES.md) | open gaps: what is still missing or unverified |
 
 ## Start here
 
