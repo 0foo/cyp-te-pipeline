@@ -3,9 +3,9 @@
 Where every file in this folder came from, what was reconstructed, and the evidence behind
 choosing this path. Assembled 2026-09-24.
 
-The lab's code and data are treated as evidence: nothing in `~/projects/cyp-project` or
+The lab's code and data are treated as evidence: nothing in `~/projects/cyp-project-forensics` or
 `~/projects/repeat-modeler-automation` was changed to build this. The forensic write-up these
-findings come from is `~/projects/cyp-project/docs/deep/06-final-final-gff.md`.
+findings come from is `~/projects/cyp-project-forensics/docs/deep/06-final-final-gff.md`.
 
 ---
 
@@ -18,17 +18,17 @@ All byte-for-byte copies; the first 12 hex digits of each SHA-256 match the orig
 | `data-preparation/1-repeat-library-and-masking/worker.sh` | `repeat-modeler-automation/worker.sh` | `bbbe404c8c80` |
 | `data-preparation/1-repeat-library-and-masking/rm-manager.sh` | `repeat-modeler-automation/rm-manager.sh` | `b61435b5e58b` |
 | `data-preparation/1-repeat-library-and-masking/rmodeler.conf.example` | `repeat-modeler-automation/rmodeler.conf.example` | `8d551841c8e0` |
-| `data-preparation/2-orthogroup-table/Step_1_Replace_RNA_identifiers_with_gene_names_Redo.py` | `cyp-project/to_organize/` (same name) | `74d53b16c85f` |
-| `data-preparation/2-orthogroup-table/Step_2_Remove_Duplicate_gene_names_10_31.py` | `cyp-project/to_organize/` (same name) | `1d06b9a8d914` |
-| `data-preparation/3-rename-genes/NEW_Step_5_Replace_gff_Names_with_Dmelanogaster_1_9.py` | `cyp-project/to_organize/` (same name) | `e974bc122c9f` |
-| `data-analysis/1-pair-te-with-cyp/repeatOpp.py` | `cyp-project/pipeline-scripts-output/repeatOpp.py` | `96d5c9eaeb0e` |
-| `data-analysis/1-pair-te-with-cyp/Locate_TE.py` | `cyp-project/pipeline-scripts-output/Locate_TE.py` | `2ca2029579a3` |
-| `data-analysis/1-pair-te-with-cyp/CleanAnnasse.py` | `cyp-project/pipeline-scripts-output/CleanAnnasse.py` | `66b306d967a7` |
-| `data-analysis/1-pair-te-with-cyp/Reg_Gene_Full.txt` | `cyp-project/pipeline-scripts-output/AnalysisForAll/Reg_Gene_Full.txt` | `df8d7a5f6a12` |
-| `data-analysis/2-combine-and-compare/build_tfbs_te_gff.py` | `cyp-project/analysis-pipeline/build_tfbs_te_gff 1.py` | `21e0453dcc12` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_exposure.py` | `cyp-project/analysis-pipeline/compare_te_cyp_exposure 1 1.py` | `0cf676ec9f4c` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_cncc.py` | `cyp-project/analysis-pipeline/compare_te_cyp_cncc 1 1.py` | `ae5affb95a58` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_xenobiotic.py` | `cyp-project/analysis-pipeline/compare_te_cyp_xenobiotic 1 1.py` | `5282449d95f6` |
+| `data-preparation/2-orthogroup-table/Step_1_Replace_RNA_identifiers_with_gene_names_Redo.py` | `cyp-project-forensics/to_organize/` (same name) | `74d53b16c85f` |
+| `data-preparation/2-orthogroup-table/Step_2_Remove_Duplicate_gene_names_10_31.py` | `cyp-project-forensics/to_organize/` (same name) | `1d06b9a8d914` |
+| `data-preparation/3-rename-genes/NEW_Step_5_Replace_gff_Names_with_Dmelanogaster_1_9.py` | `cyp-project-forensics/to_organize/` (same name) | `e974bc122c9f` |
+| `data-analysis/1-pair-te-with-cyp/repeatOpp.py` | `cyp-project-forensics/pipeline-scripts-output/repeatOpp.py` | `96d5c9eaeb0e` |
+| `data-analysis/1-pair-te-with-cyp/Locate_TE.py` | `cyp-project-forensics/pipeline-scripts-output/Locate_TE.py` | `2ca2029579a3` |
+| `data-analysis/1-pair-te-with-cyp/CleanAnnasse.py` | `cyp-project-forensics/pipeline-scripts-output/CleanAnnasse.py` | `66b306d967a7` |
+| `data-analysis/1-pair-te-with-cyp/Reg_Gene_Full.txt` | `cyp-project-forensics/pipeline-scripts-output/AnalysisForAll/Reg_Gene_Full.txt` | `df8d7a5f6a12` |
+| `data-analysis/2-combine-and-compare/build_tfbs_te_gff.py` | `cyp-project-forensics/analysis-pipeline/build_tfbs_te_gff 1.py` | `21e0453dcc12` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_exposure.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_exposure 1 1.py` | `0cf676ec9f4c` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_cncc.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_cncc 1 1.py` | `ae5affb95a58` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_xenobiotic.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_xenobiotic 1 1.py` | `5282449d95f6` |
 
 The last four were **renamed** on copy (` 1` / ` 1 1` suffixes dropped): `compare_te_cyp_cncc`
 and `compare_te_cyp_xenobiotic` do `import compare_te_cyp_exposure`, which cannot work with a
@@ -38,7 +38,7 @@ To re-verify:
 
 ```bash
 cd ~/projects && sha256sum cyp-te-pipeline/data-analysis/1-pair-te-with-cyp/repeatOpp.py \
-  cyp-project/pipeline-scripts-output/repeatOpp.py
+  cyp-project-forensics/pipeline-scripts-output/repeatOpp.py
 ```
 
 ---

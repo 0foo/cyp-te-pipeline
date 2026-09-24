@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 STEP5_INPUT = os.environ.get(
     "STEP5_INPUT",
     os.path.expanduser(
-        "~/projects/cyp-project/to_organize/hog_og/"
+        "~/projects/cyp-project-forensics/to_organize/hog_og/"
         "HOG_OG_association_gene_names_without_duplicates_10_31.tsv"
     ),
 )

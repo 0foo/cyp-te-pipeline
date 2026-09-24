@@ -8,7 +8,7 @@ Every script here is a **byte-for-byte copy** of a lab original (checksums in
 [`docs/03-provenance.md`](docs/03-provenance.md)). The one exception is
 `data-preparation/3-rename-genes/config.py`, a reconstruction of a lost lab file, labelled as
 such and validated against the lab's own results. The originals stay untouched in
-`~/projects/cyp-project` and `~/projects/repeat-modeler-automation`.
+`~/projects/cyp-project-forensics` and `~/projects/repeat-modeler-automation`.
 
 ## The pipeline
 

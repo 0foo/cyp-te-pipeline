@@ -53,7 +53,7 @@ The output file is always called `DAnasse_TE_Cyp.txt` (it was written for *D. an
   entry found, which may not be the gene's own name when names nest.
 
 **Check:** for *D. ananassae*, running steps 2–3 on the committed `filtered.gff` reproduces
-`~/projects/cyp-project/pipeline-scripts-output/DAnasse_TE_Cyp.txt` exactly (apart from CRLF
+`~/projects/cyp-project-forensics/pipeline-scripts-output/DAnasse_TE_Cyp.txt` exactly (apart from CRLF
 line endings).
 
 ---

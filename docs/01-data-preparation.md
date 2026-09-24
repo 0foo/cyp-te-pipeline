@@ -60,7 +60,7 @@ Folder: `data-preparation/2-orthogroup-table/`
 **Use the table they produced:**
 
 ```
-~/projects/cyp-project/to_organize/hog_og/HOG_OG_association_gene_names_without_duplicates_10_31.tsv
+~/projects/cyp-project-forensics/to_organize/hog_og/HOG_OG_association_gene_names_without_duplicates_10_31.tsv
 ```
 
 One row per hierarchical orthogroup (HOG), one column per species. That is `config.py`'s
@@ -143,9 +143,9 @@ were. *D. melanogaster* itself (and `MUSCA_DOMESTICA`) is skipped — it needs n
 
 Run `repeatOpp.py` (data analysis step 1) on the output. For *D. ananassae* the resulting
 `filtered.gff` must be identical to the lab's committed
-`~/projects/cyp-project/pipeline-scripts-output/filtered.gff` (166 lines) once its Windows line
+`~/projects/cyp-project-forensics/pipeline-scripts-output/filtered.gff` (166 lines) once its Windows line
 endings are removed:
 
 ```bash
-cmp <(tr -d '\r' < ~/projects/cyp-project/pipeline-scripts-output/filtered.gff) filtered.gff
+cmp <(tr -d '\r' < ~/projects/cyp-project-forensics/pipeline-scripts-output/filtered.gff) filtered.gff
 ```
