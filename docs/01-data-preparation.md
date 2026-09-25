@@ -21,6 +21,19 @@ Folder: `data-preparation/1-repeat-library-and-masking/`
 **In:** gzipped genome FASTAs (`*.fna.gz`). **Out:** `<sample>.rm.out` per genome.
 **Runtime:** 8–26 hours per genome (longer with `LTRSTRUCT=1`).
 
+**Where the genomes come from:** Zenodo record
+[18453526](https://zenodo.org/records/18453526), `genomes.tar.gz` — 19.6 GB, md5
+`bca079304da4dbe8e0c9998fc049eb03`, the same record as the annotations below.
+
+```bash
+curl -L -C - --retry 10 -o genomes.tar.gz \
+  "https://zenodo.org/api/records/18453526/files/genomes.tar.gz/content"
+md5sum genomes.tar.gz                      # must be bca079304da4dbe8e0c9998fc049eb03
+```
+
+For a single species, NCBI is smaller: *D. ananassae* is GCF_017639315.1. `build_tfbs_te_gff.py`
+can skip the local FASTA entirely with `--sequence-source ncbi`.
+
 Per genome, `worker.sh` runs `BuildDatabase` + `RepeatModeler` (builds the species' own repeat
 library) and then `RepeatMasker -lib <that library>` (finds every copy in the genome), inside
 the `dfam/tetools` container. It is crash-tolerant and runs several genomes in parallel.

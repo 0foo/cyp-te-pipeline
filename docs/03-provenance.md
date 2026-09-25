@@ -89,11 +89,11 @@ HOG table candidates:
 
 ---
 
-## Why Ayush's renaming, not `ReVamp_Final.py`
+## Why `NEW_Step_5_…`, not `ReVamp_Final.py`
 
 The lab had two scripts for the same step, and never recorded which was current.
 
-| | `NEW_Step_5_…` (Ayush) — **used here** | `ReVamp_Final.py` (Duy) |
+| | `NEW_Step_5_…` — **used here** | `ReVamp_Final.py` |
 |---|---|---|
 | Output | `<SPECIES>_final_withDmelNames.gff` | `change_<SPECIES>_final_final.gff` |
 | Method | parses attributes; writes `Name=<Dmel>`, keeps `Name_old=` | plain text replacement of IDs/names |

@@ -7,10 +7,11 @@ labelled as such, like `data-preparation/3-rename-genes/config.py`.
 
 ## Would block a run
 
-1. **Where genomes come from.** Step 1 of data preparation (RepeatModeler/RepeatMasker) and
-   `build_tfbs_te_gff.py` both need genome FASTAs; the docs don't say where to get them.
-   Source: Zenodo record 18453526, `genomes.tar.gz` (19.6 GB). For *D. ananassae* alone:
-   NCBI GCF_017639315.1, or skip the FASTA with `build_tfbs_te_gff.py --sequence-source ncbi`.
+1. ~~**Where genomes come from.**~~ *Recorded 2026-09-24:* `docs/01-data-preparation.md` now
+   gives the source — Zenodo record 18453526, `genomes.tar.gz` (19.6 GB, md5
+   `bca079304da4dbe8e0c9998fc049eb03`), with NCBI GCF_017639315.1 as the single-species
+   alternative for *D. ananassae* and `--sequence-source ncbi` to skip the FASTA altogether.
+   No longer blocking.
 2. **Species config for the comparison** (*new file*). `compare_te_cyp_exposure.py`,
    `compare_te_cyp_cncc.py` and `compare_te_cyp_xenobiotic.py` need an INI file giving each
    species' combined GFF3 and whether it is `high` or `low` exposure. The lab's example
