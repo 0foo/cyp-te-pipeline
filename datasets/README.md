@@ -16,6 +16,13 @@ Read by `data-preparation/3-rename-genes/` (its `config.py` points here by defau
 the lab from OrthoFinder-style orthogroups with the scripts in
 `data-preparation/2-orthogroup-table/`, which can no longer be re-run.
 
+## `cyp-genes-from-hog-table/`
+
+**New, derived** (not a lab file). Every Cyp gene the HOG table assigns to each species:
+25,177 genes across 305 species, a median of 81 per species. It comes as a long gene list, a per-species
+summary and a species × Cyp copy-number matrix, built from `hog-table/` by `extract_cyp_genes.py`.
+This is the Cyp set before renaming; see its README for the identifier types and why most are lost at stage 2.
+
 ## `ananassae-reference/`
 
 Everything for *D. ananassae*, the one species the lab left a full worked example for:
