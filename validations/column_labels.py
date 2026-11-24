@@ -1,0 +1,56 @@
+# NEW (2026-11-24): descriptive column headers for cyp-te-validation.xlsx (internal name -> header).
+LABELS = {
+    # both tabs
+    "species": "Species",
+    "exposure_group": "Insecticide exposure group (high/low/none)",
+    # Cyp tab
+    "total_cyp_count": "Cyp loci found by the scripts",
+    "unique_cyp_count": "Unique Cyp names after CleanAnnasse renaming",
+    "not_p450_loci": "Loci found that are not true P450s (cyclophilin, Cpr...)",
+    "pct_not_p450": "% of found Cyp loci that are not true P450s",
+    "not_p450_names": "Names of non-P450 loci found",
+    "pct_absent": "% of expected Cyps absent (unique names vs 84 per genome)",
+    "percentage_halloween_found": "% of stable Halloween genes found by the scripts (of 4)",
+    "halloween_found": "Stable Halloween genes found by the scripts",
+    "percentage_halloween_in_annotation": "% of stable Halloween genes present in the annotation (of 4)",
+    "percentage_conserved_cyps_found": "% of conserved-function single-copy Cyps found by the scripts (of 7)",
+    "conserved_cyps_missing": "Conserved-function single-copy Cyps the scripts missed",
+    "percentage_conserved_cyps_in_annotation": "% of conserved-function single-copy Cyps present in the annotation (of 7)",
+    # Transposons tab: genome-wide
+    "rm_sample": "Genome assembly (RepeatMasker sample)",
+    "total_te_count": "Genome-wide TE insertions (fragments merged)",
+    "te_fragments": "Genome-wide TE hits (fragments counted separately)",
+    "repeatmasker_rows": "Genome-wide RepeatMasker hits, all repeat types",
+    "simple_lowcomplex_rows": "Genome-wide non-TE hits (microsatellite, low-complexity, satellite, RNA)",
+    "pct_not_true_te": "Genome-wide: % of RepeatMasker hits that are not true TEs",
+    "pct_microsatellite": "Genome-wide: % of RepeatMasker hits that are microsatellites",
+    "pct_not_true_te_near_cyp": "Near Cyps (stage 3): % of repeat hits that are not true TEs",
+    "te_bp": "Genome-wide TE length (bp)",
+    "pct_genome_te": "% of genome covered by TEs",
+    "te_per_mb": "Genome-wide TE insertions per Mb",
+    "te_families_hit": "TE families with at least one genome hit",
+    "repeat_families_in_library": "Repeat families in the RepeatModeler library",
+    "pct_masked_rm_tbl": "% of genome masked, all repeat types (RepeatMasker summary)",
+    "te_LINE": "Genome-wide TE hits: LINE",
+    "te_LTR": "Genome-wide TE hits: LTR",
+    "te_DNA": "Genome-wide TE hits: DNA transposon",
+    "te_RC": "Genome-wide TE hits: rolling-circle (Helitron)",
+    "te_SINE": "Genome-wide TE hits: SINE",
+    "te_Unknown": "Genome-wide TE hits: unclassified",
+    "te_other": "Genome-wide TE hits: other classes",
+    # near Cyp (stage 3) and stage 4
+    "te_near_cyp": "Near Cyps (stage 3): true TE hits within 3 kb",
+    "te_near_cyp_per_locus": "Near Cyps (stage 3): true TE hits per Cyp locus",
+    "s4_te_count": "Stage 4: 'TEs' counted by the compare scripts (all repeat hits)",
+    "s4_true_te": "Stage 4: of those, true TEs",
+    "s4_pct_not_true_te": "Stage 4: % of counted 'TEs' that are not true TEs",
+    "s4_pct_microsatellite": "Stage 4: % of counted 'TEs' that are microsatellites",
+    "te_per_10kb_near_cyp": "Near Cyps: true TE hits per 10 kb of Cyp window",
+    "te_per_10kb_genome": "Genome-wide: TE hits per 10 kb",
+    "near_cyp_vs_genome_te_density": "TE density near Cyps / genome-wide TE density (1 = genome average)",
+}
+
+# Columns kept on the Transposons tab, in this order (the rest are computed but not shown).
+TE_KEEP = ["species", "exposure_group", "total_te_count", "pct_genome_te", "pct_not_true_te",
+           "repeat_families_in_library", "te_near_cyp", "pct_not_true_te_near_cyp",
+           "s4_te_count", "s4_pct_not_true_te", "near_cyp_vs_genome_te_density"]
