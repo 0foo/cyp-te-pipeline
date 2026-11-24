@@ -1,9 +1,27 @@
-# NEW (not a lab file, 2026-11-23): per-species summary of the cyp-te-pipeline run in
-# /bioinformatics/atallah-repeats. Reads only this pipeline's files (stage 1 rmodeler/out, stage 3
-# pairs.tsv and runs/, stage 4 exposure.tsv and xenobiotic gene list). Writes:
-#   per-species.tsv      one row per species run in stage 3 (301)
-#   xenobiotic-genes.tsv one row per species x target gene
-#   cyp-genes.tsv        one row per species x Cyp locus (every Cyp locus repeatOpp kept)
+# NEW (not a lab file, 2026-11-23): per-species and per-Cyp-locus summary of the cyp-te-pipeline run
+# in /bioinformatics/atallah-repeats. It reads only that run's files and writes three TSVs to summary/.
+# The two workbook builders, make-validation-sheet.py and sheets/make-*.py, read these TSVs.
+#
+# INPUTS
+#   3-pair-te-with-cyp/pairs.tsv (rows with status RUN: 301 species) and runs/<LABEL>/filtered.gff
+#   and GenesAffectedByTEs.txt (stage 3); rmodeler/out/<rm_sample>.rm.tbl and -families.fa (stage 1);
+#   4-combine-and-compare/exposure.tsv and xenobiotic_resistance_cyp_genes.txt (stage 4 settings).
+#
+# HOW IT WORKS (per species)
+#   - Cyp loci: the filtered.gff lines de-duplicated by gene ID, which undoes repeatOpp.py's duplicate rows.
+#   - Hits: GenesAffectedByTEs.txt rows de-duplicated on (locus ID, RepeatMasker row). That file
+#     is used, rather than DAnasse_TE_Cyp.txt, because it still carries the locus ID. Each hit is
+#     classed by the top level of its class/family: "nonTE" for Simple_repeat, Low_complexity,
+#     Satellite, rRNA, tRNA, snRNA, scRNA, srpRNA and ARTEFACT, and "TE" otherwise (LINE, LTR, DNA,
+#     RC, SINE, Unknown, ...).
+#   - Window size: gene length + 6,000 bp per locus (+/- 3 kb). That gives TE hits per 10 kb of window.
+#   - Genome: size, % masked and per-class % from the .rm.tbl; library size = number of ">" lines in -families.fa.
+#   - Xenobiotic targets: a target is present when it equals (ignoring case) one of a locus's Name= values.
+# OUTPUTS (summary/, tab-separated)
+#   per-species.tsv       one row per species (301): exposure fields, genome stats, Cyp loci, hits, TE/nonTE
+#   xenobiotic-genes.tsv  one row per species x target gene: present, loci, TE and non-TE hits
+#   cyp-genes.tsv         one row per species x Cyp locus: names, coordinates, hits by class
+# Usage: python3 -B make-summary.py   (standard library only; writes into /bioinformatics/atallah-repeats/summary)
 import csv, os, re, collections
 A = "/bioinformatics/atallah-repeats"
 OUT = f"{A}/summary"

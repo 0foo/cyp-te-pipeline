@@ -1,3 +1,35 @@
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# Step_1_Replace_RNA_identifiers_with_gene_names_Redo.py: data preparation, step 2 (orthogroup
+# table). REFERENCE ONLY: it cannot be re-run, because its input Dmel_HOG_association.tsv was never kept.
+#
+# WHAT IT DID
+#   It converted the orthogroup table from transcript (mRNA) IDs to gene identifiers. That is the
+#   first of two steps that produced the HOG table which data preparation step 3 (NEW_Step_5) uses to
+#   rename genes. The table actually used is datasets/hog-table/..._without_duplicates_10_31.tsv.
+#
+# HOW IT WORKS
+#   1. Reads HOG_OG_association_1_9.tsv: one row per hierarchical orthogroup (HOG), with columns
+#      HOG, OG, gene-tree parent clade, and then one column per species listing that species' mRNA IDs
+#      separated by ", ". The header row holds the species labels (DROSOPHILA_ANANASSAE, ...).
+#   2. Reads Dmel_HOG_association.tsv and maps each HOG to a D. melanogaster common gene name (its column 5).
+#   3. For each species column (skipping the first 3 columns, MUSCA_DOMESTICA and DROSOPHILA_MELANOGASTER),
+#      reads annotations/gff_fixed/<SPECIES>_final.gff and builds a map from mRNA ID to gene identifier,
+#      using the mRNA's Name= value, or its Parent= value when Name= is missing or holds a RefSeq "XM" accession.
+#   4. Rewrites every cell: each mRNA ID becomes its gene identifier, or "<mRNA>_NOT_FOUND". The
+#      D. melanogaster column is filled from step 2, and the OG and clade columns are copied.
+#   5. Writes Output/HOG_OG_association_gene_names_Redo_1_9.tsv: same layout, tab-separated, cells
+#      ", "-joined, with no newline after the last row.
+#
+# THEORY
+#   Orthogroups group genes that descend from one ancestral gene. Isoforms of one gene therefore
+#   become repeated gene names within a cell, and Step_2 removes them. Gene-level names are needed
+#   because the renaming step edits gene features. The orthology tool is not recorded; the HOG/OG
+#   columns look like OrthoFinder output, from the "Dhakad_et_al_2025_Data" release.
+#
+# INPUTS / OUTPUTS: relative paths hardcoded at the top (Dhakad_et_al_2025_Data/..., Output/...).
+# LIMITATIONS: subprocess and os are imported but unused. The file handles are opened at module scope.
+#   The date suffixes (_1_9 here, _10_31 on the table in use) do not line up; see docs/03-provenance.md.
+# ===== END DOCUMENTATION HEADER =====
 import subprocess
 import os
 import re

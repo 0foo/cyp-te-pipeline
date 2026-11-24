@@ -1,3 +1,13 @@
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# rmodeler.conf.example: data preparation, step 1. A template for rmodeler.conf, the only configuration
+# of worker.sh and rm-manager.sh. Copied from the repeat-modeler-automation repository.
+#
+# Copy it to rmodeler.conf next to the scripts and set at least IN_DIR (gzipped genome FASTAs),
+# WORK_DIR, OUT_DIR, STATE_DIR and LOG_DIR. Keep RUN_MASKER=1: that is what produces the
+# <sample>.rm.out tables the Cyp/TE analysis reads (Locate_TE.py). WORK_DIR and STATE_DIR must be on
+# local disk, never NFS or sshfs: claims depend on mkdir being atomic, and a work directory needs
+# 20-80 GB per genome. These comment lines are harmless in a copy, because '#' lines are ignored.
+# ===== END DOCUMENTATION HEADER =====
 # rmodeler.conf -- the ONLY way to configure worker.sh and rm-manager.sh.
 #
 # Copy this file to rmodeler.conf, in the same directory as worker.sh and

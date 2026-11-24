@@ -1,5 +1,23 @@
-# NEW (not a lab file, 2026-11-22): integrity check of RepeatMasker output.
-# Usage: python3 check-rm-out.py RESULT.json [RMODELER_ROOT]   (root holds out/ logs/ state/)
+# NEW (not a lab file, 2026-11-22): integrity check of the stage 1 RepeatMasker output, run before any
+# .rm.out was used downstream. Every file is checked for corruption, truncation and internal
+# consistency.
+#
+# FOR EACH <sample>.rm.out IN <RMODELER_ROOT>/out (8 worker processes)
+#   - Sizes of .rm.out, .rm.tbl, -families.fa and -families.stk. The .tbl summary is parsed:
+#     sequences, total length, bases masked.
+#   - Logs: whether logs/<sample>.masker.log ends in "done", plus error-like lines, batch counts, and
+#     error lines in logs/<sample>.log. Also the state markers done/, masked/ and failed/.
+#   - Byte scan in 4 KiB blocks for non-text bytes (corruption), recording where the first bad block
+#     is and how many runs of bad blocks there are.
+#   - Line-by-line parse. It checks the 3-line header and that each row has 14-16 fields, a numeric score
+#     and div/del/ins, begin <= end, a "(left)" field, strand + or C, a class, repeat positions
+#     consistent with the strand, an integer ID, and an optional "*". It also tracks the sequence
+#     length implied by end + left (which must agree on every row of a sequence), sort order, ID
+#     order, the union of hit intervals (for comparison with the .tbl masked bases), and class counts.
+# OUTPUT: a JSON list with one dict per sample (RESULT.json), which grade-rm-out.py turns into verdicts.
+# Usage: python3 -B check-rm-out.py RESULT.json [RMODELER_ROOT]
+#   RMODELER_ROOT holds out/, logs/ and state/; it defaults to /bioinformatics/atallah-repeats/rmodeler.
+# All 319 .rm.out files were checked this way (see validations/README.md).
 import sys, os, re, json
 from multiprocessing import Pool
 

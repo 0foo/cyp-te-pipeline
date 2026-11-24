@@ -13,31 +13,62 @@ changed, and neither is needed to use this repository. The full forensic write-u
 
 ## Copied files
 
-All byte-for-byte copies; the first 12 hex digits of each SHA-256 match the original.
+Each script below is a copy of a lab (or automation) original that differs from it **only by a
+documentation header** added on 2026-11-24 at the user's request. The header explains how the script
+works, its inputs and outputs, the theory behind it and its known defects. Nothing else in any copy
+was changed: not a code line, not whitespace, not line endings (the CRLF files carry CRLF headers).
+`Reg_Gene_Full.txt` has no header and is still a byte-for-byte copy.
 
-| Here | Original | SHA-256 |
-|---|---|---|
-| `data-preparation/1-repeat-library-and-masking/worker.sh` | `repeat-modeler-automation/worker.sh` | `bbbe404c8c80` |
-| `data-preparation/1-repeat-library-and-masking/rm-manager.sh` | `repeat-modeler-automation/rm-manager.sh` | `b61435b5e58b` |
-| `data-preparation/1-repeat-library-and-masking/rmodeler.conf.example` | `repeat-modeler-automation/rmodeler.conf.example` | `8d551841c8e0` |
-| `data-preparation/2-orthogroup-table/Step_1_Replace_RNA_identifiers_with_gene_names_Redo.py` | `cyp-project-forensics/to_organize/` (same name) | `74d53b16c85f` |
-| `data-preparation/2-orthogroup-table/Step_2_Remove_Duplicate_gene_names_10_31.py` | `cyp-project-forensics/to_organize/` (same name) | `1d06b9a8d914` |
-| `data-preparation/3-rename-genes/NEW_Step_5_Replace_gff_Names_with_Dmelanogaster_1_9.py` | `cyp-project-forensics/to_organize/` (same name) | `e974bc122c9f` |
-| `data-analysis/1-pair-te-with-cyp/repeatOpp.py` | `cyp-project-forensics/pipeline-scripts-output/repeatOpp.py` | `96d5c9eaeb0e` |
-| `data-analysis/1-pair-te-with-cyp/Locate_TE.py` | `cyp-project-forensics/pipeline-scripts-output/Locate_TE.py` | `2ca2029579a3` |
-| `data-analysis/1-pair-te-with-cyp/CleanAnnasse.py` | `cyp-project-forensics/pipeline-scripts-output/CleanAnnasse.py` | `66b306d967a7` |
-| `data-analysis/1-pair-te-with-cyp/Reg_Gene_Full.txt` | `cyp-project-forensics/pipeline-scripts-output/AnalysisForAll/Reg_Gene_Full.txt` | `df8d7a5f6a12` |
-| `data-analysis/2-combine-and-compare/build_tfbs_te_gff.py` | `cyp-project-forensics/analysis-pipeline/build_tfbs_te_gff 1.py` | `21e0453dcc12` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_exposure.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_exposure 1 1.py` | `0cf676ec9f4c` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_cncc.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_cncc 1 1.py` | `ae5affb95a58` |
-| `data-analysis/2-combine-and-compare/compare_te_cyp_xenobiotic.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_xenobiotic 1 1.py` | `5282449d95f6` |
+The header is one contiguous block between two marker lines:
+
+```
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# ...
+# ===== END DOCUMENTATION HEADER =====
+```
+
+It sits at the top of each file, after the `#!` line where there is one. The exception is
+`worker.sh`, where it sits after the script's own header comment (after original line 147),
+because `usage()` prints lines 3–34 of the file with `sed` and an insertion above line 34 would
+change `--help`.
+
+**Recovering an original.** Delete the block, markers included:
+
+```bash
+sed '/^# ===== DOCUMENTATION HEADER (added 2026-11-24/,/^# ===== END DOCUMENTATION HEADER =====/d' FILE
+```
+
+**Provenance check.** "SHA-256 (original)" is checked on the file with the header block removed;
+the first 12 hex digits must match. This was verified for all 13 scripts on 2026-11-24, both
+against these values and against the last header-free commit (`git show fb2f8a1:<path>`).
+"SHA-256 (as now, with header)" identifies the current file and changes if the header is edited.
+
+| Here | Original | SHA-256 (original; file with header removed) | SHA-256 (as now, with header) |
+|---|---|---|---|
+| `data-preparation/1-repeat-library-and-masking/worker.sh` | `repeat-modeler-automation/worker.sh` | `bbbe404c8c80` | `d9d9780858a7` |
+| `data-preparation/1-repeat-library-and-masking/rm-manager.sh` | `repeat-modeler-automation/rm-manager.sh` | `b61435b5e58b` | `20ff98b07ec7` |
+| `data-preparation/1-repeat-library-and-masking/rmodeler.conf.example` | `repeat-modeler-automation/rmodeler.conf.example` | `8d551841c8e0` | `31743c1b0573` |
+| `data-preparation/2-orthogroup-table/Step_1_Replace_RNA_identifiers_with_gene_names_Redo.py` | `cyp-project-forensics/to_organize/` (same name) | `74d53b16c85f` | `904bbacb123f` |
+| `data-preparation/2-orthogroup-table/Step_2_Remove_Duplicate_gene_names_10_31.py` | `cyp-project-forensics/to_organize/` (same name) | `1d06b9a8d914` | `9062205f6c87` |
+| `data-preparation/3-rename-genes/NEW_Step_5_Replace_gff_Names_with_Dmelanogaster_1_9.py` | `cyp-project-forensics/to_organize/` (same name) | `e974bc122c9f` | `4f93d14a1609` |
+| `data-analysis/1-pair-te-with-cyp/repeatOpp.py` | `cyp-project-forensics/pipeline-scripts-output/repeatOpp.py` | `96d5c9eaeb0e` | `3a33ff63f3f7` |
+| `data-analysis/1-pair-te-with-cyp/Locate_TE.py` | `cyp-project-forensics/pipeline-scripts-output/Locate_TE.py` | `2ca2029579a3` | `10db4dc9b1f4` |
+| `data-analysis/1-pair-te-with-cyp/CleanAnnasse.py` | `cyp-project-forensics/pipeline-scripts-output/CleanAnnasse.py` | `66b306d967a7` | `b4178a1fff98` |
+| `data-analysis/1-pair-te-with-cyp/Reg_Gene_Full.txt` | `cyp-project-forensics/pipeline-scripts-output/AnalysisForAll/Reg_Gene_Full.txt` | `df8d7a5f6a12` | unchanged (no header) |
+| `data-analysis/2-combine-and-compare/build_tfbs_te_gff.py` | `cyp-project-forensics/analysis-pipeline/build_tfbs_te_gff 1.py` | `21e0453dcc12` | `ef39fd25dd22` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_exposure.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_exposure 1 1.py` | `0cf676ec9f4c` | `fca2c8944460` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_cncc.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_cncc 1 1.py` | `ae5affb95a58` | `fdb9de6cf422` |
+| `data-analysis/2-combine-and-compare/compare_te_cyp_xenobiotic.py` | `cyp-project-forensics/analysis-pipeline/compare_te_cyp_xenobiotic 1 1.py` | `5282449d95f6` | `2c4d96bf669c` |
 
 The last four were **renamed** on copy (` 1` / ` 1 1` suffixes dropped): `compare_te_cyp_cncc`
 and `compare_te_cyp_xenobiotic` do `import compare_te_cyp_exposure`, which cannot work with a
-space in the filename. Contents are unchanged.
+space in the filename. Apart from the documentation header, contents are unchanged.
 
-The automation's own documentation is copied alongside, unchanged:
-`docs/repeat-modeler-automation/README.md` and `SOURCE.md`.
+The automation's own documentation is copied alongside: `docs/repeat-modeler-automation/README.md`
+(unchanged) and `SOURCE.md`. `SOURCE.md` changed in one way only, on 2026-11-24: its `worker.sh:N`
+and `rm-manager.sh:N` line references were renumbered to the files as they now are (+34 for
+`worker.sh`, whose references are all below its header; +23 for `rm-manager.sh`), so that they
+still point at the code they describe.
 
 ## Copied data — `datasets/`
 

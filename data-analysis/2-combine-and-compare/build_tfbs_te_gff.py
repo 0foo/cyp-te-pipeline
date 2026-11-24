@@ -1,4 +1,59 @@
 #!/usr/bin/env python3
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# build_tfbs_te_gff.py: data analysis, step 2a. Builds one combined GFF3 per species containing its
+# Cyp genes, their transcript structure, the repeats paired with them, and predicted transcription-
+# factor binding sites (TFBS). The lab's own docstring below covers flags and installation.
+#
+# PIPELINE POSITION
+#   Inputs: the step 1 TE table (D_<species>GenesAffectedByTE.txt, from CleanAnnasse.py), the renamed
+#   annotation (<SPECIES>_final_withDmelNames.gff, from NEW_Step_5) and the genome. Output:
+#   combined GFF3, which is the only input of compare_te_cyp_{exposure,cncc,xenobiotic}.py.
+#
+# HOW IT WORKS
+#   1. parse_te_hits: reads each line as seqid TAB gene name TAB the RepeatMasker .out fields, and
+#      de-duplicates on (seqid, gene, start, end, repeat name, strand). That removes the duplicate rows
+#      made by repeatOpp.py (for D. ananassae, 900 rows become 465).
+#   2. parse_annotation_gff3: in three passes over the annotation, finds the gene feature for each
+#      name, its mRNAs, and their exons. A gene matches when the name equals, case-insensitively,
+#      a comma-separated token of its ID/gene/gene_name/Name/locus_tag; the first matching gene wins.
+#      One representative transcript is kept per gene (most exons, then longest), and introns are
+#      derived from the gaps between its exons.
+#   3. build_scan_regions: makes a promoter window around each TSS (1000 bp upstream, 200 bp
+#      downstream, strand-aware) and a window around each TE (+/- 50 bp).
+#   4. Extracts the window sequences from the genome FASTA with a built-in byte-offset index (the
+#      FASTA must be uncompressed), or from NCBI E-utilities (--sequence-source ncbi).
+#   5. Downloads JASPAR 2026 CORE insects non-redundant motifs (MEME format; cached in ./jaspar_cache,
+#      or use --jaspar-motif-file) and appends a hand-built CncC:Maf-S ARE motif. It then runs FIMO
+#      (local binary, or Docker with --fimo-via-docker) at p <= 1e-4, and maps hits back to genome
+#      coordinates.
+#   6. Writes the GFF3 with all features sorted together by (seqid, start): gene / mRNA / exon /
+#      intron; mobile_genetic_element, one per TE (Description=Within range of <gene>, repeat_class=,
+#      pct_div=); and TF_binding_site (Name=motif, p/q-value, Description=...near <genes>). By default it also
+#      writes <output>.transposable_elements.gff3 and bgzip/tabix-indexes both files for JBrowse 2,
+#      when bgzip/tabix (or Docker) is available.
+#
+# THEORY
+#   A TE can carry or disrupt cis-regulatory sequence. Scanning promoters and TE flanks with position
+#   weight matrices (FIMO) lists candidate TF sites that a TE might add to or remove from a Cyp gene.
+#   CncC:Maf-S (the fly Nrf2 homologue) drives xenobiotic-inducible Cyp expression through the
+#   antioxidant response element, consensus TMAnnRTGAYnnnGCRwwww (Veraksa 2000; Misra et al. 2011).
+#   JASPAR's insect set has no CncC motif, so the script builds one from that consensus (0.85 at
+#   fixed bases). Its hits are tagged source=FIMO/literature-ARE, motif_source_id=CncC_Maf_ARE.
+#
+# CAVEATS
+#   - The TE rows are not filtered. Simple_repeat and Low_complexity rows become
+#     mobile_genetic_element "TEs", and the compare scripts count them as TEs (see README.md).
+#   - FIMO hits are predictions at p <= 1e-4 per position with no multiple-testing cut. Because every TE
+#     adds a scan window, genes with more TEs get more sequence scanned and so more TFBS hits.
+#   - The gene list in "near <genes>" is escaped by _gff3_escape(), so commas become %2C. A site shared
+#     by several genes therefore reads as one unknown name to compare_te_cyp_cncc.py, which splits on
+#     ",". In the 301-species run this affected 110 of 5,604 CncC hits.
+#   - Only one gene record is kept per name, so paralogous loci renamed to the same Dmel name are
+#     collapsed. Names that are absent from the annotation are reported as [warn] and dropped.
+#   - Needs network access for JASPAR (and NCBI, if used), unless --jaspar-motif-file is given.
+# Run in this project by validations/pipeline-run/4-combine-and-compare/run-build.sh (FIMO via Docker,
+# image memesuite-root:local from fimo-image/Dockerfile; a log line 'FIMO run failed' counts as failure).
+# ===== END DOCUMENTATION HEADER =====
 """
 build_tfbs_te_gff.py
 

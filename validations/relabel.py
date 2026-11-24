@@ -1,5 +1,19 @@
-# NEW (2026-11-24): applies column_labels (LABELS, TE_KEEP) to an already-built cyp-te-validation.xlsx: the same
-# result as a fresh make-validation-sheet.py run, without re-reading the RepeatMasker files.
+# NEW (not a lab file, 2026-11-24): re-applies column_labels.py to an already-built
+# /bioinformatics/atallah-repeats/summary/cyp-te-validation.xlsx, without re-reading the RepeatMasker files.
+#
+# HOW IT WORKS
+#   For the "Cyp" and "Transposons" tabs, it reads the data rows and maps their current headers back
+#   to internal names, using the inverse of LABELS. It reads each column's description from the
+#   matching "<tab> - columns" tab (from the "short name" column when there is one). It then deletes
+#   and recreates both tabs, in the same position, with the headers from LABELS. The Transposons tab
+#   is limited to the TE_KEEP columns. Formatting is the same as make-validation-sheet.py: bold
+#   wrapped header, frozen first row and column, autofilter. Numeric strings are converted back to numbers.
+# INPUT/OUTPUT: the workbook above, overwritten in place. Other tabs, such as "About" and
+#   "7 conserved Cyp genes", are left alone.
+# LIMITATION: every column it shows must already have a description in the existing "- columns" tab.
+#   A column newly added to TE_KEEP that was never documented raises a KeyError; run
+#   make-validation-sheet.py instead.
+# Usage: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 -B relabel.py'
 import sys
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment

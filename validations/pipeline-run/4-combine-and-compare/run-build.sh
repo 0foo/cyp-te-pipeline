@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
-# Stage 4a runner (new, not a lab file). For every species in exposure.tsv (all 301 stage 3 species),
-# runs the repo's build_tfbs_te_gff.py UNCHANGED, with arguments only:
-#   --te-hits      input/te-tables/<LABEL>_GenesAffectedByTE.txt   (stage 3)
-#   --annotation-gff  renamed GFF (stage 2); D. melanogaster uses its own un-renamed GFF
-#   --genome-fasta work/<LABEL>/genome.fna  (unmasked genome, decompressed here because the script
-#                                            indexes plain FASTA by byte offset; deleted afterwards)
+# Stage 4a runner (new, not a lab file, 2026-11-23): builds one combined GFF3 per species (data analysis
+# step 2a) by running the repo's build_tfbs_te_gff.py UNCHANGED, with arguments only. It covers every
+# species in exposure.tsv, which is all 301 stage 3 species.
+#   --te-hits         input/te-tables/<LABEL>_GenesAffectedByTE.txt   (from stage 3, run-pairing.sh)
+#   --annotation-gff  the renamed GFF (stage 2); D. melanogaster uses its own un-renamed GFF
+#   --genome-fasta    work/<LABEL>/genome.fna: the unmasked genome, decompressed here because the
+#                     script indexes plain FASTA by byte offset. It is deleted afterwards.
 #   --fimo-via-docker --fimo-docker-image memesuite-root:local --jaspar-cache-dir work/jaspar
-#       FIMO runs in memesuite/memesuite rebuilt to run as root (work/fimo-image/Dockerfile): the official
+#       FIMO runs in memesuite/memesuite rebuilt to run as root (fimo-image/Dockerfile). The official
 #       image runs as user meme, which cannot read the script's mode-700 temp dir, so FIMO failed and the
 #       script carried on without binding sites. A run whose log says 'FIMO run failed' counts as FAIL.
-#   --output       output/combined-gff/<LABEL>.combined.gff3
-# A failed species' output is deleted. Skips species whose output already exists, so it can be re-run after an interruption.
-# Usage: bash run-build.sh [JOBS]     (log: logs/run-build.log, one log per species in logs/build/)
+#   --output          output/combined-gff/<LABEL>.combined.gff3. The script's defaults also write
+#                     .transposable_elements.gff3 and bgzip/tabix copies.
+# A failed species' output is deleted. Species whose output already exists are skipped, so the runner
+# can be re-run after an interruption.
+# OUTPUT: one OK/FAIL/SKIP line per species (with time and feature count). Logs go to logs/run-build.log
+#   and to logs/build/<LABEL>.log, one per species.
+# Usage: bash run-build.sh [JOBS]   (default 6)
 set -uo pipefail
 JOBS=${1:-6}
 export H=/bioinformatics/atallah-repeats/4-combine-and-compare

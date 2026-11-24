@@ -1,3 +1,47 @@
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# NEW_Step_5_Replace_gff_Names_with_Dmelanogaster_1_9.py: data preparation, step 3. Gives each
+# species' genes the names of their D. melanogaster orthologs.
+#
+# PIPELINE POSITION
+#   Inputs: the Zenodo annotation <SPECIES>_final.gff and the HOG table from step 2. Output:
+#   <SPECIES>_final_withDmelNames.gff, read by repeatOpp.py and build_tfbs_te_gff.py. This is the
+#   renaming script to use. ReVamp_Final.py silently leaves the genes in multi-gene HOG cells
+#   unrenamed (on D. ananassae it loses 34 of 91 Cyp loci); see docs/03-provenance.md.
+#
+# HOW IT WORKS
+#   1. Reads the HOG table (STEP5_INPUT) and maps each HOG to the list of D. melanogaster gene names
+#      in its DROSOPHILA_MELANOGASTER column (DMEL_COLUMN_INDEX). Cells are split on "," and passed
+#      through clean_field(), which strips whitespace and the quotes around "gene-A, gene-B" cells.
+#   2. For each species column, builds a map from gene identifier to HOG. The first 3 columns (HOG, OG,
+#      clade), MUSCA_DOMESTICA and DROSOPHILA_MELANOGASTER are skipped, as is any species whose
+#      <SPECIES>_final.gff is not in GFF_INPUT_DIR (it prints "Skipping ...: GFF file not found").
+#   3. Rewrites the species' GFF line by line. Lines with fewer than 9 tab fields are copied unchanged.
+#      - gene: takes ID= (or Name= when there is no ID), finds its HOG and that HOG's Dmel names, then
+#        writes Name=<dmel names, comma-joined>;ID=<original>;Name_old=<old Name>;<other attributes>.
+#      - mRNA: takes Parent= (or ID=), and inserts Parent_New=<dmel names> (or ID_New=) after the
+#        first attribute.
+#      - Everything else, and genes with no HOG or no Dmel member, are left as they were.
+#      lookup_gene() tries an exact match first, then the ID with or without a gene-/rna-/cds-/exon-
+#      prefix, then a normalised scan of the whole map. That last fallback is slow, and is why a
+#      species takes about 10 minutes.
+#   4. Writes GFF_OUTPUT_DIR/<SPECIES>_final_withDmelNames.gff, and prints "on: <SPECIES>" for every column.
+#
+# THEORY
+#   Annotation IDs are species-specific (LOC..., gene-G...). Orthologs share a HOG, so writing the
+#   D. melanogaster member's name onto each gene lets one list of Dmel Cyp names find the Cyp genes
+#   of every species. This transfers names; it does not resolve paralogy.
+#
+# INPUTS: everything comes from config.py, with environment overrides STEP5_INPUT, GFF_INPUT_DIR and
+#   GFF_OUTPUT_DIR. Every species file present in GFF_INPUT_DIR is processed.
+# LIMITATIONS
+#   - When a HOG has several Dmel genes, a gene receives all of their names (Name=wek,CG17568), and
+#     every paralog in that HOG receives the same names. That causes repeatOpp.py's duplicate rows
+#     and the ambiguous labels in CleanAnnasse.py.
+#   - Dmel names are FlyBase symbols. The Halloween P450s therefore become phm/dib/sad/shd, not
+#     Cyp306a1 etc., which the Cyp list does not match.
+#   - subprocess is imported but unused. config.py is a reconstruction, validated on D. ananassae.
+# Run in this project by validations/pipeline-run/2-rename-genes/run-rename.sh (batches, env overrides).
+# ===== END DOCUMENTATION HEADER =====
 import subprocess
 import os
 import re

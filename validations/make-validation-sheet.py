@@ -1,12 +1,31 @@
-# NEW (not a lab file, 2026-11-24): builds cyp-te-validation.xlsx (one row per species, 301) for upload as a
-# Google Sheet. Counts only what the pipeline's scripts produced:
-#   Cyp tab: the Cyp loci repeatOpp.py selected (runs/<LABEL>/filtered.gff) and the names CleanAnnasse.py
-#            gave them (runs/<LABEL>/DAnasse_TE_Cyp.txt column 2). Each locus is then checked: is it really a
-#            cytochrome P450, or something sharing the 'Cyp' prefix (cyclophilin Cyp1/Cyp40/Cypl/Cyp33,
-#            P450 reductase Cpr, ...)?
-#   Transposons tab: the species' RepeatMasker output (stage 1, rmodeler/out/<rm_sample>.rm.out), genome-wide,
-#            plus the TEs stage 3 found in the Cyp windows (summary/per-species.tsv).
-# Usage: python3 -B make-validation-sheet.py   (needs openpyxl)
+# NEW (not a lab file, 2026-11-24): builds summary/cyp-te-validation.xlsx (uploaded as the Google Sheet
+# "Cyp-TE validation 2026-11-24"), one row per species (301). It checks what the pipeline's own
+# scripts acquired, and counts only what they produced.
+#
+# TABS
+#   Cyp: the Cyp loci repeatOpp.py selected (runs/<LABEL>/filtered.gff, distinct gene IDs) and the
+#     unique names CleanAnnasse.py gave them (DAnasse_TE_Cyp.txt column 2). Each name is checked
+#     against a P450 pattern (Cyp<digits><letters>..., plus the Halloween symbols), so that
+#     cyclophilins (Cyp1, Cyp40, Cypl, Cyp33) and P450 reductase (Cpr) show up as non-P450s. "% absent"
+#     is measured against 84 P450s per genome (Good et al. 2014, GBE 6:1118: 74-94 across 12 Drosophila).
+#     It also scores the 4 stable Halloween genes and the 7 conserved single-copy Cyps with known
+#     functions, both as found by the scripts and as present in the renamed annotation. The gap
+#     between the two shows losses caused by the scripts (for example, the Halloween genes carry FlyBase
+#     symbols, which the lab list does not use). See the comment above CONSERVED for the sources.
+#   7 conserved Cyp genes: one row per gene, giving its function, its source, and in how many species
+#     the scripts found it versus how many have it in the annotation.
+#   Transposons: genome-wide counts from each RepeatMasker .out (stage 1). A row is classed by column 11;
+#     the NONTE classes are "not true TEs". TE insertions = distinct IDs in column 15 (fragments merged);
+#     TE bp = the sum of TE row lengths. Also: library size, true TEs near Cyps (stage 3, from
+#     per-species.tsv), and the stage 4 "TEs". Stage 4 TEs are recounted the way
+#     compare_te_cyp_exposure.py counts them: Description "Within range of <gene>" with a matching gene
+#     Name; this matches the scripts' totals for all 235 tested species. They are split by repeat_class.
+#     Density ratio = (TE hits per 10 kb of Cyp window) / (TE hits per 10 kb of genome).
+#   Each data tab is followed by a "<tab> - columns" tab defining every column. Headers come from column_labels.py.
+# INPUTS: /bioinformatics/atallah-repeats/summary/per-species.tsv and cyp-genes.tsv (from make-summary.py),
+#   3-pair-te-with-cyp/runs/, rmodeler/out/*.rm.out, the renamed GFFs and 4-combine-and-compare/output/combined-gff/.
+# Usage: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 -B make-validation-sheet.py'
+#   It reads about 6 GB of .out files, which takes roughly 10 minutes.
 import csv, re, collections
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
@@ -203,5 +222,37 @@ def add(title, rows, doc, cols=None):
     for row in cw.iter_rows(min_row=2):
         for c in row: c.alignment = Alignment(wrap_text=True, vertical="top")
 add("Cyp", cyp_rows, CYP_DOC)
+
+# ---- one tab on the 7 conserved-function Cyps (species counts recomputed from the same scans)
+GENE_INFO = [  # (gene, name, what it does, source)
+    ("Cyp302a1", "disembodied (dib)", "Makes the moulting hormone ecdysone: one of the hydroxylation steps (C22) that turn cholesterol into ecdysone in the hormone-producing gland. Without it embryos cannot make cuticle and die.", "Good et al. 2014 (citing Gilbert 2004; Rewitz et al. 2006)"),
+    ("Cyp306a1", "phantom (phm)", "Makes ecdysone: an earlier hydroxylation step (C25) in the same pathway, in the prothoracic gland.", "Good et al. 2014 (citing Gilbert 2004; Rewitz et al. 2006)"),
+    ("Cyp315a1", "shadow (sad)", "Makes ecdysone: the last step of synthesis (C2 hydroxylation), producing ecdysone itself.", "Warren et al. 2002 (stable in Good et al. 2014, Table 1)"),
+    ("Cyp314a1", "shade (shd)", "Activates the hormone: converts ecdysone into 20-hydroxyecdysone, the form that drives moulting and metamorphosis, in tissues outside the gland.", "Good et al. 2014 (citing Gilbert 2004; Rewitz et al. 2006)"),
+    ("Cyp18a1", "Cyp18a1", "Switches the hormone off: inactivates 20-hydroxyecdysone (26-hydroxylation) so hormone pulses end on time; needed to get through metamorphosis.", "Good et al. 2014 (citing Guittard et al. 2011)"),
+    ("Cyp303a1", "Cyp303a1", "Needed for development of the sensory bristles (external sense organs) on the body surface.", "Good et al. 2014 (citing Willingham & Keil 2004)"),
+    ("Cyp4g1", "Cyp4g1", "Makes cuticular hydrocarbons in the oenocytes: the waxy layer that waterproofs the fly and protects it from drying out.", "Good et al. 2014 (citing Qiu et al. 2012)"),
+]
+found_n, annot_n = collections.Counter(), collections.Counter()
+for r in sp:
+    found_n.update(conserved(f"{R}/{r['species']}/filtered.gff", False)); annot_n.update(conserved(gff_for(r["species"]), True))
+gt = wb.create_sheet("7 conserved Cyp genes")
+gt.append(["Gene", "Name", "What it does", "Source", f"Species where the scripts found it (of {len(sp)})",
+           f"Species with it in the annotation (of {len(sp)})", "Halloween gene?"])
+for g, n, d, s in GENE_INFO: gt.append([g, n, d, s, found_n[g], annot_n[g], "Yes" if g in HALL_STABLE else "No"])
+gt.append([])
+for k, v in [
+    ("Why these 7", "All 7 are single-copy in all 12 Drosophila genomes in Good et al. 2014 (GBE 6:1118, Table 1; doi:10.1093/gbe/evu083) and have a known function. Every drosophilid is expected to carry each once, so a species missing one points to a gene lost during annotation, renaming or the scripts' name matching, not to biology."),
+    ("Why the scripts miss the 4 Halloween genes", "The lab gene list names them by number (Cyp302a1...), but the renamed annotations name them by gene symbol (dib...), so the scripts' name match finds them only in D. melanogaster, whose records also list the numbers."),
+    ("Wording", "Good et al. call these 'stable' genes with known functions; they do not call them essential. Most have lethal or severe mutant phenotypes in D. melanogaster, but describe them as 'conserved single-copy P450s with known functions' in a paper."),
+    ("Per species", "See the Cyp tab: '% of conserved-function single-copy Cyps found by the scripts (of 7)' and '...present in the annotation (of 7)', plus the list of missed genes."),
+]:
+    gt.append([k, v]); gt.merge_cells(start_row=gt.max_row, start_column=2, end_row=gt.max_row, end_column=7)
+    gt.cell(gt.max_row, 1).font = Font(bold=True)
+for c in gt[1]: c.font = Font(bold=True)
+gt.freeze_panes = "A2"
+for col, w in zip("ABCDEFG", (24, 20, 70, 38, 20, 20, 12)): gt.column_dimensions[col].width = w
+for row in gt.iter_rows():
+    for c in row: c.alignment = Alignment(wrap_text=True, vertical="top")
 add("Transposons", te_rows, TE_DOC, TE_KEEP)
 out = f"{A}/summary/cyp-te-validation.xlsx"; wb.save(out); print("wrote", out)

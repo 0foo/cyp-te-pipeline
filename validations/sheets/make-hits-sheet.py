@@ -1,8 +1,14 @@
-# NEW (not a lab file, 2026-11-23): builds species-hits-and-stage4.xlsx, a one-row-per-species workbook:
-# total repeat hits and total TEs near Cyp genes (stage 3), plus each stage 4 compare script's per-species
-# output. Reads summary/per-species.tsv (make-summary.py) and 4-combine-and-compare/output/compare/*.csv.
-# Nothing is recomputed from the stage 4 outputs; the compare scripts' tests are pooled across species
-# (no per-species test exists), so the per-species results are the scripts' per-species summaries.
+# NEW (not a lab file, 2026-11-23): builds summary/species-hits-and-stage4.xlsx (the Google Sheet
+# "Cyp-TE per-species hits and stage 4"), a workbook with one row per species (301).
+# COLUMNS: the stage 3 totals from summary/per-species.tsv (Cyp loci, repeat hits within gene +/- 3 kb,
+#   how many are TEs, simple and low-complexity hits, TEs per locus). Then, for each stage 4 compare
+#   script (all / cncc / xeno), its per-species summary from output/compare/<s>.species-summary.csv:
+#   n_cyp_genes, genes with a TE, total "TEs", TEs per kb and TEs per gene, plus the TFBS count for cncc.
+# Nothing is recomputed from the stage 4 outputs. The compare scripts' tests are pooled across species
+#   (there is no per-species test), so the per-species values shown are the inputs to those tests.
+#   Stage 4 columns are blank for the 66 "none" exposure species.
+# TABS: About, Per species, Columns (a definition of every column).
+# Usage: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 -B make-hits-sheet.py'
 import csv
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment

@@ -1,4 +1,46 @@
 #!/usr/bin/env python3
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# compare_te_cyp_cncc.py: data analysis, step 2b, the first restricted comparison. It runs the same
+# high- versus low-exposure TE comparison as compare_te_cyp_exposure.py, but only on Cyp genes that
+# have a predicted CncC:Maf-S binding site nearby. The lab's own docstring follows below.
+#
+# PIPELINE POSITION
+#   Input: the combined GFF3 files from build_tfbs_te_gff.py, built WITH TFBS scanning (not
+#   --skip-tfbs), listed in the same INI as the exposure script. It imports compare_te_cyp_exposure.py
+#   (as `base`) for parsing, statistics, the bootstrap and the plot, so it must sit in the same folder.
+#
+# HOW IT WORKS
+#   1. parse_cncc_associated_genes: a TF_binding_site row is a CncC hit if motif_source_id=CncC_Maf_ARE
+#      (the literature motif that build_tfbs_te_gff.py adds) or if its Name contains the word "cnc". The
+#      gene names after "near " in its Description are split on "," into the CncC-proximal set.
+#   2. Keeps only those genes from base.parse_species_gff3(). Then, exactly as in the exposure script:
+#      per-species summary, pooled Fisher / chi-square / Mann-Whitney / Welch tests, and the
+#      species-cluster bootstrap. Statistics are skipped if either group has no CncC-proximal gene.
+#   3. A species with zero TF_binding_site rows is flagged as a data gap (FIMO never ran), not as a
+#      real zero.
+#
+# THEORY
+#   CncC (Cap-n-collar isoform C, the fly Nrf2 homologue) with its partner Maf-S binds the antioxidant
+#   response element and induces detoxifying Cyps when flies meet xenobiotics (Misra et al. 2011, on
+#   Cyp6a2). Cyps carrying such an element are the ones most plausibly under inducible detox control,
+#   so a TE-exposure effect should be strongest there, if it exists.
+#
+# CAVEATS
+#   All the caveats of compare_te_cyp_exposure.py apply: pseudoreplication, unfiltered "TEs", and
+#   fixed 5-species wording. In addition:
+#   - "Near" includes the TE windows themselves. A gene with more TEs has more sequence scanned, so it is
+#     more likely to receive a CncC hit. The gene subset is therefore selected partly on the outcome
+#     being measured.
+#   - The motif is a hand-built consensus, not an empirical PWM, and FIMO uses p <= 1e-4 per position.
+#   - build_tfbs_te_gff.py writes multi-gene "near" lists with escaped commas (%2C). This script
+#     splits on "," only, so those genes are lost (110 of 5,604 CncC hits in the 301-species run).
+#
+# INPUTS: --config INI (required unless --self-test), --alpha.
+# OUTPUTS: --output-csv te_cyp_cncc_species_summary.csv (adds n_tfbs_total), --output-report
+#   te_cyp_cncc_report.md, optional --per-gene-csv, and --plot-path te_cyp_cncc_by_species.png
+#   (--no-plot skips it). --self-test runs base.validate_stats() only.
+# Run in this project by validations/pipeline-run/4-combine-and-compare/run-compare.sh.
+# ===== END DOCUMENTATION HEADER =====
 """
 compare_te_cyp_cncc.py
 

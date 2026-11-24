@@ -1,7 +1,14 @@
-# NEW (not a lab file, 2026-11-23): builds pipeline-results.xlsx for upload as a Google Sheet.
-# Reads only this pipeline's outputs: summary/per-species.tsv (stages 1-3, from make-summary.py) and the
-# stage 4 compare outputs in 4-combine-and-compare/output/compare/ (repo scripts run unchanged).
-# Statistics are copied from the scripts' own reports; nothing is recomputed here.
+# NEW (not a lab file, 2026-11-23): builds summary/pipeline-results.xlsx (uploaded as the Google Sheet
+# "Cyp-TE pipeline results"). It reads only this pipeline's outputs: summary/per-species.tsv (stages 1-3,
+# from make-summary.py) and the stage 4 outputs in 4-combine-and-compare/output/compare/ (repo scripts
+# run unchanged by run-compare.sh).
+# TABS: About; Per species (the stage 1-3 summary joined with each compare script's per-species
+#   summary); Statistics (one row per comparison, giving the Fisher, chi-square, Mann-Whitney and Welch
+#   results, the bootstrap CIs and the verdict); Cyp genes (stage 4) and Xenobiotic genes (stage 4) (the
+#   scripts' per-gene CSVs). Each data tab has a "<tab> - columns" tab defining every column.
+# The statistics are copied from the scripts' own markdown reports by regular expressions, not
+#   recomputed. If a report's wording changes, a field comes out blank instead of raising an error.
+# Usage: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 -B make-sheet.py'
 import csv, re
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment

@@ -4,8 +4,10 @@ The happy path through the Atallah lab's Cyp / transposable-element pipeline: wh
 transposable elements (TEs) sit in or near cytochrome P450 (Cyp) genes, species by species,
 and whether that differs between species with high and low xenobiotic exposure.
 
-Every script here is a **byte-for-byte copy** of a lab original (checksums in
-[`docs/03-provenance.md`](docs/03-provenance.md)). The one exception is
+Every script here is a copy of a lab original that differs from it **only by a marked documentation
+header** added on 2026-11-24 (between `# ===== DOCUMENTATION HEADER …` and `# ===== END
+DOCUMENTATION HEADER =====`); deleting that block gives back the original byte for byte (checksums
+and the recovery command in [`docs/03-provenance.md`](docs/03-provenance.md)). The one exception is
 `data-preparation/3-rename-genes/config.py`, a reconstruction of a lost lab file, labelled as
 such and validated against the lab's own results.
 

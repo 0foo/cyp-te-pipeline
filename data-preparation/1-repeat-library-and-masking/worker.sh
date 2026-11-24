@@ -145,6 +145,40 @@
 #   143  stopped by SIGTERM (128 + 15)
 #
 #==============================================================================
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# Placed here, after the script's own header, and not on line 2: usage() prints lines 3-34 of this
+# file with sed, so anything inserted above line 34 would change the --help output.
+#
+# PIPELINE POSITION
+#   Data preparation, step 1 (data-preparation/1-repeat-library-and-masking/). Input: gzipped genome
+#   FASTAs. Output: <sample>.rm.out, the per-genome table of repeat locations that Locate_TE.py pairs
+#   with Cyp genes. Copied from the repeat-modeler-automation repository; it replaces the lab's
+#   original manual runs (spinContainer.sh, runMasker.sh) and produces the same .out format.
+#
+# WHAT IT DOES (details in the header above and in docs/repeat-modeler-automation/)
+#   Claims one genome at a time (with an atomic mkdir under STATE_DIR), decompresses it into a job
+#   directory, and runs two stages inside the dfam/tetools container:
+#     model  BuildDatabase + RepeatModeler   -> OUT_DIR/<sample>-families.fa (and .stk)
+#     mask   RepeatMasker -lib <families.fa> -pa THREADS -xsmall
+#                                            -> OUT_DIR/<sample>.rm.out, .rm.tbl
+#                                               (.rm.masked.fa only if KEEP_MASKED_FASTA=1)
+#   Each stage writes its own marker (done/, masked/), so a crash repeats only the unfinished stage.
+#
+# THEORY
+#   RepeatModeler builds a de novo repeat library for one genome: RECON and RepeatScout find repeated
+#   sequence, then families are clustered and classified (LINE, LTR, DNA, RC, ...; "Unknown" when
+#   unclassified). RepeatMasker then aligns that library back to the genome and reports every copy:
+#   SW score, divergence, coordinates, strand, family and class. A species-specific library finds
+#   lineage-specific TEs that a stock Dfam library would miss. RepeatMasker also reports simple
+#   repeats and low-complexity sequence, which are not TEs, and nothing downstream removes them.
+#
+# INPUTS: IN_DIR/<GLOB> (default *.fna.gz). The only configuration is rmodeler.conf next to this
+#   script (copy rmodeler.conf.example). It takes no arguments and reads no environment variables.
+# OUTPUTS: OUT_DIR as above. Logs go to LOG_DIR; state markers go to STATE_DIR (local disk only).
+# RUN: docker pull dfam/tetools:latest; ./worker.sh for one test worker; ./rm-manager.sh start for the
+#   real run. 8-26 h per genome. In this project's full run (RepeatModeler 2.0.9, RepeatMasker 4.2.4),
+#   the outputs were checked by validations/pipeline-run/1-repeat-library-and-masking/check-rm-out.py.
+# ===== END DOCUMENTATION HEADER =====
 
 # -u  : an unset variable is a fatal error rather than an empty string.
 # -o pipefail : a pipeline fails if ANY stage failed, not just the last one.

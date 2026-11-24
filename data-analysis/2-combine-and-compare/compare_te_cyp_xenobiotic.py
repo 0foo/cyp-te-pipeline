@@ -1,4 +1,43 @@
 #!/usr/bin/env python3
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# compare_te_cyp_xenobiotic.py: data analysis, step 2b, the second restricted comparison. It runs the
+# same high- versus low-exposure TE comparison as compare_te_cyp_exposure.py, but only on a
+# user-supplied list of Cyp genes known from the literature to be involved in insecticide or
+# xenobiotic resistance. The lab's own docstring follows below.
+#
+# PIPELINE POSITION
+#   Input: the combined GFF3 files from build_tfbs_te_gff.py and the same INI file as the exposure
+#   script, plus --gene-list. It does not need TF_binding_site rows. It imports compare_te_cyp_exposure.py
+#   (as `base`) for parsing, statistics, the bootstrap and the plot, so it must sit in the same folder.
+#
+# HOW IT WORKS
+#   1. parse_gene_list: one gene name per line. Text after "#" is ignored, and so are blank lines.
+#   2. restrict_to_gene_list: keeps the genes whose Name= equals a listed name exactly, ignoring case.
+#      This is not a substring or regex match, so split paralogs (Cyp12d1-d / Cyp12d1-p) must each be
+#      listed. Listed genes absent from a species are reported per species, which helps diagnose
+#      naming mismatches.
+#   3. Then the same steps as the exposure script: per-species summary, pooled Fisher / chi-square /
+#      Mann-Whitney / Welch tests, and the species-cluster bootstrap. Statistics are skipped if either
+#      group has none of the listed genes.
+#
+# THEORY
+#   Specific Cyps have documented resistance roles. The classic case is Cyp6g1, where an Accord TE in
+#   its promoter drives over-expression and DDT/neonicotinoid resistance. If insecticide exposure
+#   favours TE-mediated regulatory change, these genes are where it should show.
+#
+# CAVEATS
+#   All the caveats of compare_te_cyp_exposure.py apply: pseudoreplication, unfiltered "TEs", and
+#   fixed 5-species wording. The result also depends entirely on which genes are listed. The lab's
+#   example list (xenobiotic_resistance_cyp_genes.example.txt) was never kept, so the list must be
+#   supplied (NOTES.md, gap 3). This project's run used
+#   /bioinformatics/atallah-repeats/4-combine-and-compare/xenobiotic_resistance_cyp_genes.txt (10 genes).
+#
+# INPUTS: --config INI and --gene-list (both required unless --self-test), --alpha.
+# OUTPUTS: --output-csv te_cyp_xenobiotic_species_summary.csv, --output-report
+#   te_cyp_xenobiotic_report.md, optional --per-gene-csv, and --plot-path
+#   te_cyp_xenobiotic_by_species.png (--no-plot skips it). --self-test runs base.validate_stats() only.
+# Run in this project by validations/pipeline-run/4-combine-and-compare/run-compare.sh.
+# ===== END DOCUMENTATION HEADER =====
 """
 compare_te_cyp_xenobiotic.py
 

@@ -58,6 +58,12 @@ Every TE number traces back to one RepeatMasker run per species. Three different
   - `4-combine-and-compare/check-genome-vs-gff.sh`: genome-to-annotation check.
 
   These only pass paths and flags to the lab scripts, which they never edit.
+
+  On 2026-11-24 the header comments of these repo copies were expanded (comments only), so they no
+  longer match the copies in `/bioinformatics/atallah-repeats/` byte for byte. The exception is
+  `run-pairing.sh`: its sed line numbers were updated for the lab scripts' new documentation headers
+  (46/48, 49/52, 43; they were 4/6, 2/5, 3), and the repo copy was copied back over the live one so the
+  two stay identical.
 - `sheets/`: `make-sheet.py` builds "Cyp-TE pipeline results" (per-species data plus stage 4 statistics), and
   `make-hits-sheet.py` builds "Cyp-TE per-species hits and stage 4". Both need `openpyxl`.
 

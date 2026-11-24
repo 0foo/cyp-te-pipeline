@@ -8,6 +8,10 @@ The copied scripts keep the lab's **hardcoded paths**. Nothing here edits them f
 each run, open the script and set the lines listed below. Work in a scratch directory per
 species — the step 1 scripts write fixed filenames into the current directory.
 
+The line numbers below are for the scripts as they are now, each with its marked documentation
+header (added 2026-11-24). In the lab originals — the files with that header block removed — the
+same lines are `repeatOpp.py` 4 and 6, `Locate_TE.py` 2 and 5, `CleanAnnasse.py` 1 and 3.
+
 ---
 
 ## Step 1 — pair Cyp genes with nearby TEs
@@ -17,9 +21,9 @@ Folder: `data-analysis/1-pair-te-with-cyp/`. Three scripts, run in order, per sp
 
 | # | Script | Set these lines first | Reads | Writes (current directory) |
 |---|---|---|---|---|
-| 1 | `repeatOpp.py` | 4 `GFF` → the `_withDmelNames.gff`; 6 `rgFile` → `Reg_Gene_Full.txt` | renamed GFF + Cyp list | `filtered.gff` |
-| 2 | `Locate_TE.py` | 2 `cypGene` → `filtered.gff`; 5 `TEs` → the species' `.rm.out` | `filtered.gff` + `.out` | `GenesAffectedByTEs.txt` |
-| 3 | `CleanAnnasse.py` | 1 `toClean` → `GenesAffectedByTEs.txt`; 3 `aliasToFind` → `Reg_Gene_Full.txt` | the above + Cyp list | `DAnasse_TE_Cyp.txt` |
+| 1 | `repeatOpp.py` | 46 `GFF` → the `_withDmelNames.gff`; 48 `rgFile` → `Reg_Gene_Full.txt` | renamed GFF + Cyp list | `filtered.gff` |
+| 2 | `Locate_TE.py` | 49 `cypGene` → `filtered.gff`; 52 `TEs` → the species' `.rm.out` | `filtered.gff` + `.out` | `GenesAffectedByTEs.txt` |
+| 3 | `CleanAnnasse.py` | 41 `toClean` → `GenesAffectedByTEs.txt` (already relative); 43 `aliasToFind` → `Reg_Gene_Full.txt` | the above + Cyp list | `DAnasse_TE_Cyp.txt` |
 
 ```bash
 REPO=/path/to/cyp-te-pipeline

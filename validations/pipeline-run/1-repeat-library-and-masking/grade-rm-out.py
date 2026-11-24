@@ -1,5 +1,16 @@
-# NEW (not a lab file, 2026-11-22): grade the JSON written by check-rm-out.py.
-# Usage: python3 grade-rm-out.py RESULT.json > problems.tsv   (prints sample, verdict, reasons; summary on stderr)
+# NEW (not a lab file, 2026-11-22): grades the JSON written by check-rm-out.py and gives each
+# RepeatMasker sample a verdict of OK or BAD.
+#
+# A sample is BAD if any of the following holds:
+#   - the .out file is empty, contains binary garbage or NUL bytes, or has unparseable rows (up to 20
+#     "repeatpos" rows are tolerated, because RepeatMasker itself writes a few negative positions
+#     such as "(-2)")
+#   - the header is bad, or the file has no final newline (truncated)
+#   - rows disagree on a sequence's length, or there are no data rows
+#   - the union of hit intervals differs from the .tbl "bases masked" by more than 2%
+#   - the .rm.tbl is missing, the masker log does not end in "done", or it has error-like lines
+# OUTPUT: TSV on stdout (sample, verdict, reasons) and a {verdict: count} summary on stderr.
+# Usage: python3 -B grade-rm-out.py RESULT.json > grade.tsv
 import sys, json, collections
 
 res = json.load(open(sys.argv[1]))

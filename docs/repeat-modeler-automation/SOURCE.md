@@ -27,29 +27,29 @@ A genome goes through two stages, and this shapes everything below:
 
 | Stage | Function | Runs | Produces | Marker |
 |---|---|---|---|---|
-| model | `stage_model` (`worker.sh:541-591`) | `BuildDatabase` + `RepeatModeler` | `$OUT_DIR/<sample>-families.fa` | `done/<sample>` |
-| mask | `stage_mask` (`worker.sh:601-660`) | `RepeatMasker -lib` | `$OUT_DIR/<sample>.rm.out` | `masked/<sample>` |
+| model | `stage_model` (`worker.sh:575-625`) | `BuildDatabase` + `RepeatModeler` | `$OUT_DIR/<sample>-families.fa` | `done/<sample>` |
+| mask | `stage_mask` (`worker.sh:635-694`) | `RepeatMasker -lib` | `$OUT_DIR/<sample>.rm.out` | `masked/<sample>` |
 
-The mask stage runs only when `RUN_MASKER=1`. `process_one` (`worker.sh:700-758`) decides
+The mask stage runs only when `RUN_MASKER=1`. `process_one` (`worker.sh:734-792`) decides
 which stages are due by looking at the markers that already exist, and **each stage writes its
-own marker the instant it succeeds** (`worker.sh:740`, `:752`) rather than one marker at the
+own marker the instant it succeeds** (`worker.sh:774`, `:752`) rather than one marker at the
 end.
 
 That split is the whole point. Three consequences follow:
 
 - **Enabling masking later costs nothing extra.** Set `RUN_MASKER=1` and every genome holding
   a `done/` marker becomes available again for the mask stage alone. The library is copied
-  back out of `$OUT_DIR` (`worker.sh:613-614`), which is the only place it survives once the
+  back out of `$OUT_DIR` (`worker.sh:647-648`), which is the only place it survives once the
   job directory is deleted.
 - **A failed mask does not cost you the model.** A genome that models in 20 hours and then
   fails during RepeatMasker keeps `done/` and its library, so the retry is one RepeatMasker
   run.
 - **The stages log separately** — `<sample>.log` and `<sample>.masker.log`, truncated
-  independently at `worker.sh:733` and `:745` — so a mask-only retry cannot destroy the
+  independently at `worker.sh:767` and `:745` — so a mask-only retry cannot destroy the
   RepeatModeler log belonging to the library it is using.
 
 If the `done/` marker exists but the library is gone, the worker fails that genome with an
-explicit message (`worker.sh:617-618`) rather than silently re-modelling it.
+explicit message (`worker.sh:651-652`) rather than silently re-modelling it.
 
 ---
 
@@ -57,7 +57,7 @@ explicit message (`worker.sh:617-618`) rather than silently re-modelling it.
 
 ### The contract
 
-`worker.sh:204-251`, duplicated at `rm-manager.sh:105-154`.
+`worker.sh:238-285`, duplicated at `rm-manager.sh:128-177`.
 
 Eighteen recognised keys:
 
@@ -85,7 +85,7 @@ exactly like one that was applied, and you find out three hours into a run.
 
 ### Why environment variables are discarded
 
-`worker.sh:212` unsets all eighteen names *before* reading the file. `THREADS=2 ./worker.sh`
+`worker.sh:246` unsets all eighteen names *before* reading the file. `THREADS=2 ./worker.sh`
 does not override, and does not survive as a leftover either.
 
 The reasoning: N workers share `$STATE_DIR`, `$OUT_DIR` and `$WORK_DIR`, and only behave if
@@ -94,7 +94,7 @@ workers end up disagreeing about where the queue lives.
 
 Note the interaction with `rm-manager.sh`: the manager `export`s every setting, so launched
 workers inherit them — but each worker then *re-reads and unsets* them anyway
-(`rm-manager.sh:113`). A worker started by hand and one started by the manager are configured
+(`rm-manager.sh:136`). A worker started by hand and one started by the manager are configured
 identically by construction.
 
 ### Not `source`
@@ -104,7 +104,7 @@ execute shell commands — it can only set the eighteen names.
 
 ### Validation
 
-`validate_config()` (`worker.sh:255-268`):
+`validate_config()` (`worker.sh:289-302`):
 
 - nine path/name settings must be non-empty
 - `THREADS`, `WORKERS` must match `^[1-9][0-9]*$`
@@ -114,7 +114,7 @@ execute shell commands — it can only set the eighteen names.
 - `IN_DIR` must exist
 
 `MEM_LIMIT` is **not** validated and may be empty (meaning unlimited). It is passed through to
-`docker run --memory` unchecked (`worker.sh:360`).
+`docker run --memory` unchecked (`worker.sh:394`).
 
 ### The committed `rmodeler.conf`
 
@@ -180,7 +180,7 @@ $STATE_DIR/failed/<sample>           a stage failed, scratch + logs kept
 
 A genome is **available** when it still has an unfinished stage and is neither claimed nor
 failed. That state is not recorded anywhere — it is inferred from the absence of the markers
-above, recomputed from `$IN_DIR` on every pass (`worker.sh:809-816`).
+above, recomputed from `$IN_DIR` on every pass (`worker.sh:843-850`).
 
 Note that `done/` no longer means "finished". With `RUN_MASKER=1` a modelled genome stays
 available for the mask stage until `masked/` exists too, which is exactly what makes turning
@@ -198,17 +198,17 @@ claim() {
 }
 ```
 
-`worker.sh:463-468`. On a local filesystem `mkdir` is atomic: the kernel performs the
+`worker.sh:497-502`. On a local filesystem `mkdir` is atomic: the kernel performs the
 does-it-exist check and the create as one indivisible operation. N workers racing for one
 genome produce exactly one exit status 0 and N-1 `EEXIST`.
 
 There is deliberately **no `if [ -d … ]` test** before it. That would reintroduce the
 test-and-set window the design exists to avoid.
 
-The marker checks in the main loop (`worker.sh:809-816`) are an optimisation only — they skip
+The marker checks in the main loop (`worker.sh:843-850`) are an optimisation only — they skip
 pointless `mkdir` attempts and are *allowed to be stale*. The `mkdir` is the only
 authoritative step. `process_one` re-reads the markers after winning the claim
-(`worker.sh:708-713`) and returns immediately if there is nothing left to do.
+(`worker.sh:742-747`) and returns immediately if there is nothing left to do.
 
 > **`STATE_DIR` must be local.** `mkdir` atomicity is not dependable over NFS. This is the
 > single assumption the whole scheme rests on, and violating it produces duplicate runs in a
@@ -220,7 +220,7 @@ authoritative step. `process_one` re-reads the markers after winning the claim
 unclaim() { rm -rf "${STATE_DIR:?}/claimed/${1:?}"; }
 ```
 
-`worker.sh:476`. The `${VAR:?}` expansions make an unset or empty variable a loud failure
+`worker.sh:510`. The `${VAR:?}` expansions make an unset or empty variable a loud failure
 rather than an expansion to nothing — a bug can never turn this into `rm -rf /claimed/`.
 
 Called for **every** outcome, because it is the `done/`, `masked/` or `failed/` marker, not the
@@ -228,7 +228,7 @@ claim, that keeps a genome from being picked up again.
 
 ### `reap_stale_claims()`
 
-`worker.sh:487-512`, runs once at startup, before the main loop.
+`worker.sh:521-546`, runs once at startup, before the main loop.
 
 For each `claimed/*/`:
 
@@ -245,7 +245,7 @@ whichever doesn't exist errors harmlessly under the redirect.
 
 ### `shuf` is not cosmetic
 
-`worker.sh:826`:
+`worker.sh:860`:
 
 ```bash
 done < <(find "$IN_DIR" -maxdepth 1 -name "$GLOB" -type f | shuf)
@@ -265,12 +265,12 @@ would not behave.
 
 ### `set -uo pipefail`, no `-e`
 
-`worker.sh:152`. Unset variables are fatal; a pipeline fails if any stage failed. `-e` is
+`worker.sh:186`. Unset variables are fatal; a pipeline fails if any stage failed. `-e` is
 deliberately absent: **one genome failing must not kill the worker.**
 
 ### The trap
 
-`on_term()` (`worker.sh:304-321`) does two things: set `SHUTDOWN=1` so the main loop stops
+`on_term()` (`worker.sh:338-355`) does two things: set `SHUTDOWN=1` so the main loop stops
 taking new work, and stop the running container.
 
 The container is stopped **by name**, not by killing `$CHILD_PID`. The container is a child of
@@ -282,12 +282,12 @@ There is a retry loop around `docker stop`, because `CURRENT_CONTAINER` is set j
 that window. Up to 20 attempts at 0.25 s, with an early exit if the client process is already
 gone.
 
-`SIGHUP` is swallowed (`worker.sh:326`) so closing the terminal doesn't kill a worker started
+`SIGHUP` is swallowed (`worker.sh:360`) so closing the terminal doesn't kill a worker started
 without `nohup`.
 
 ### Why `docker_run` loops around `wait`
 
-`worker.sh:390-395`:
+`worker.sh:424-429`:
 
 ```bash
 while :; do
@@ -308,15 +308,15 @@ signal, it only tests existence.
 ### rc 130 — "aborted, not failed"
 
 The script's private convention. Both stage functions check `(( SHUTDOWN ))` before treating a
-non-zero exit as failure — `worker.sh:547`, `:564`, `:569`, `:579` in `stage_model`, and
+non-zero exit as failure — `worker.sh:581`, `:564`, `:569`, `:579` in `stage_model`, and
 `:606`, `:637` in `stage_mask` — and `process_one` checks again after decompression, before
-committing to any container at all (`worker.sh:727-730`).
+committing to any container at all (`worker.sh:761-764`).
 
 Without those checks, every clean shutdown would wrongly mark its in-flight genome **failed** —
 because stopping a container makes `docker run` exit non-zero, which is indistinguishable from
 a genuine failure unless you check whether you were the one who stopped it.
 
-`finish_failed_stage()` (`worker.sh:671-680`) handles the two unsuccessful outcomes, and
+`finish_failed_stage()` (`worker.sh:705-714`) handles the two unsuccessful outcomes, and
 `process_one` the successful one:
 
 | rc | marker | scratch | logs |
@@ -342,7 +342,7 @@ only the mask is repeated.
 
 ## 5. The container invocation
 
-`docker_run()` (`worker.sh:357-399`). Every flag is there for a reason:
+`docker_run()` (`worker.sh:391-433`). Every flag is there for a reason:
 
 | Flag | Why |
 |---|---|
@@ -363,7 +363,7 @@ trace you can follow on the host without translating.
 One image serves both stages: `dfam/tetools:latest` bundles RepeatMasker alongside
 RepeatModeler, so the mask stage needs no second image and no second mount.
 
-`safe_name()` (`worker.sh:407`) reduces a sample name to `[A-Za-z0-9_.-]`, capped at 100 chars
+`safe_name()` (`worker.sh:441`) reduces a sample name to `[A-Za-z0-9_.-]`, capped at 100 chars
 to leave room for the `-db` / `-rm` / `-mask` suffixes. It uses `printf` rather than a
 here-string because a here-string appends its own newline, which `tr -c` would transliterate
 into a trailing `_` on every generated name.
@@ -376,12 +376,12 @@ and no obvious cause. If one fails suspiciously fast, check `dmesg` before belie
 
 ### `-threads` vs `-pa`
 
-`detect_thread_flag()` (`worker.sh:424-446`). `-pa` was deprecated in RepeatModeler 2.0.4 in
+`detect_thread_flag()` (`worker.sh:458-480`). `-pa` was deprecated in RepeatModeler 2.0.4 in
 favour of `-threads`. Rather than assume, the worker runs `RepeatModeler -help` once and greps
 for `-threads`.
 
 The answer is a property of `$RM_IMAGE`, not of the worker, so it is cached at
-`$STATE_DIR/.thread_flag_mode` (`worker.sh:425`) — with N workers sharing one image, only the
+`$STATE_DIR/.thread_flag_mode` (`worker.sh:459`) — with N workers sharing one image, only the
 first to ask launches a probe container. A lost race just means two probe instead of one.
 Harmless.
 
@@ -392,27 +392,27 @@ The result is stored in an **array**, so it expands to two separate arguments ra
 string containing a space.
 
 **This detection applies to RepeatModeler only.** RepeatMasker has no `-threads` spelling to
-detect; `stage_mask` passes `-pa "$THREADS"` unconditionally (`worker.sh:635`), where `-pa` is
+detect; `stage_mask` passes `-pa "$THREADS"` unconditionally (`worker.sh:669`), where `-pa` is
 RepeatMasker's own count of parallel search jobs. The container's `--cpus` ceiling still
 applies on top.
 
 ### No `-engine`
 
-`worker.sh:548-553`. Current RepeatModeler (checked against 2.0.9) dropped AB-Blast support
+`worker.sh:582-587`. Current RepeatModeler (checked against 2.0.9) dropped AB-Blast support
 and removed `-engine` from `BuildDatabase`'s argument list — passing it is a hard "Unknown
 option: engine" failure. RepeatModeler itself still parses it but hardcodes rmblast and
 ignores the value. The flag is gone from both calls.
 
 ### `-xsmall` on the mask stage
 
-`worker.sh:635`. RepeatMasker soft-masks rather than replacing repeats with `N`, so
+`worker.sh:669`. RepeatMasker soft-masks rather than replacing repeats with `N`, so
 `<sample>.fa.masked` remains usable as sequence for the downstream motif scanning in
 `build_tfbs_te_gff.py`. It has no effect on the `.out` table, which is what the rest of the
 pipeline actually consumes.
 
 ### Decompression happens on the host
 
-`decompress_genome()` (`worker.sh:522-532`) runs `zcat "$gz" > "$jobdir/$sample.fa"` outside
+`decompress_genome()` (`worker.sh:556-566`) runs `zcat "$gz" > "$jobdir/$sample.fa"` outside
 any container. This means `$IN_DIR` is **never mounted into the container** — a container only
 ever sees one genome's scratch directory. It runs once per attempt, because both stages need
 the FASTA.
@@ -420,7 +420,7 @@ the FASTA.
 ### Output is verified, not assumed
 
 Both stages check their product before declaring success: `<sample>-families.fa` at
-`worker.sh:584`, and `<sample>.fa.out` at `worker.sh:642`. RepeatModeler can exit 0 having
+`worker.sh:618`, and `<sample>.fa.out` at `worker.sh:676`. RepeatModeler can exit 0 having
 produced nothing usable, and RepeatMasker writes its `.out` even for a genome with no hits at
 all — so an empty one means the run did not really finish.
 
@@ -429,12 +429,12 @@ all — so an empty one means the run did not really finish.
 ## 6. `rm-manager.sh`
 
 Three subcommands. That is the entire interface; extra arguments are rejected rather than
-ignored (`rm-manager.sh:305`) because `start 4` used to mean "four workers" and must not now be
+ignored (`rm-manager.sh:328`) because `start 4` used to mean "four workers" and must not now be
 silently read as `start`.
 
 ### `start`
 
-`rm-manager.sh:181-220`. Pulls the image if absent (once, here, rather than letting four
+`rm-manager.sh:204-243`. Pulls the image if absent (once, here, rather than letting four
 workers each start the same download — the workers themselves *refuse* rather than pull).
 
 Then for slots 1..`WORKERS`: skip any whose pid file names a live process, otherwise
@@ -453,11 +453,11 @@ sleep 2
 
 ### `stop`
 
-`rm-manager.sh:229-250`. Walks **pid files**, not 1..`WORKERS`, so lowering `WORKERS` can never
+`rm-manager.sh:252-273`. Walks **pid files**, not 1..`WORKERS`, so lowering `WORKERS` can never
 strand a running worker with nothing to stop it.
 
 The pid file is not removed immediately. A background subshell polls until the process actually
-exits, then removes it (`rm-manager.sh:244`):
+exits, then removes it (`rm-manager.sh:267`):
 
 ```bash
 ( while kill -0 "$pid" 2>/dev/null; do sleep 1; done; rm -f "$pidf" ) &
@@ -474,7 +474,7 @@ immediately.
 
 ### `status`
 
-`rm-manager.sh:263-299`. **Two independent views that can legitimately disagree:**
+`rm-manager.sh:286-322`. **Two independent views that can legitimately disagree:**
 
 - which worker *processes* are alive, from pid files
 - what the *queue* looks like, read straight from the state directories — the same source of
@@ -542,13 +542,13 @@ smaller than the modelling stage, but it is not free and it competes for the sam
 ## 8. Observations
 
 **The duplicated config reader.** ~80 identical lines in both files, called out as deliberate
-at `rm-manager.sh:86-92`: "these are two standalone scripts with no shared library." That is a
+at `rm-manager.sh:109-115`: "these are two standalone scripts with no shared library." That is a
 defensible trade — each file can be copied somewhere and still work — but it is a real
 maintenance hazard. A fix to the parser has to be applied twice, and adding `RUN_MASKER` and
 `KEEP_MASKED_FASTA` required editing both `CONFIG_KEYS` arrays and both validators. If you
 change one, change both, and consider adding a test that diffs the two blocks.
 
-**`usage()` parses its own source.** `worker.sh:161` does `sed -n '3,34p' "${BASH_SOURCE[0]}"`.
+**`usage()` parses its own source.** `worker.sh:195` does `sed -n '3,34p' "${BASH_SOURCE[0]}"`.
 Editing the header comment silently changes the help output, and inserting lines above line 34
 breaks it. The RepeatMasker change had to be written into the existing three description lines
 for exactly this reason.
@@ -558,12 +558,12 @@ workers at 6 threads on 24 cores will contend rather than partition. In practice
 is I/O-bound enough in places that this hasn't mattered, but it is not the same as
 `--cpuset-cpus`.
 
-**Logs are truncated on retry.** `process_one` does `: > "$logf"` (`worker.sh:733`) and
+**Logs are truncated on retry.** `process_one` does `: > "$logf"` (`worker.sh:767`) and
 `: > "$maskf"` (`:745`). A retried stage loses the previous attempt's log for *that stage*.
 Since the stages log separately a mask-only retry no longer destroys the modelling log, but if
 you are debugging an intermittent failure, copy the log aside before retrying.
 
 **The mask stage re-decompresses.** A mask-only pass wipes the job directory and decompresses
-the genome again (`worker.sh:717`, `:719`) even though only RepeatMasker will run. That is a
+the genome again (`worker.sh:751`, `:719`) even though only RepeatMasker will run. That is a
 few minutes against RepeatMasker's hour or two, and it keeps `process_one` to one code path —
 but it is avoidable work if you ever need to mask a large batch in a hurry.

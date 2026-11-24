@@ -1,4 +1,52 @@
 #!/usr/bin/env python3
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# compare_te_cyp_exposure.py: data analysis, step 2b, the main comparison. Asks whether species with
+# high insecticide exposure carry more TEs in or near their Cyp genes than low-exposure species.
+# The lab's own docstring follows below.
+#
+# PIPELINE POSITION
+#   It reads only the combined GFF3 files written by build_tfbs_te_gff.py, one per species, listed in
+#   an INI file. compare_te_cyp_cncc.py and compare_te_cyp_xenobiotic.py import its parsing and
+#   statistics (`import compare_te_cyp_exposure as base`), so all three must stay in one folder
+#   under this file name.
+#
+# HOW IT WORKS
+#   1. load_species_config: reads one [section] per species with gff = <combined GFF3> (relative to
+#      the INI), exposure = high|low, and optionally gene_name_pattern = ^cyp\d (needed only for a
+#      whole-genome GFF).
+#   2. parse_species_gff3: every `gene` feature's Name= is one Cyp gene (length = end - start + 1).
+#      Every row whose Description contains "Within range of <name>" counts as one TE for that name.
+#      TE names that match no gene are reported as "unmatched".
+#   3. Per species: n_cyp_genes, n_genes_with_te, pct_genes_with_te, total_te_count, total_cyp_bp,
+#      te_per_kb and te_per_gene.
+#   4. Pooled per-gene tests: every gene of every species is one observation.
+#        Fisher's exact (two-tailed), and chi-square with Yates' correction, on exposure x (has >=1 TE);
+#        Mann-Whitney U (normal approximation, tie-corrected) and Welch's t on the per-gene TE counts.
+#   5. Species-cluster bootstrap: whole species are resampled with replacement within each group
+#      (10,000 resamples, seed 12345). Gives percentile 95% CIs for the high-low difference and the
+#      high/low ratio in mean TEs per gene, and the share of resamples in which high > low.
+#   6. Writes the outputs. validate_stats() runs first, and the script refuses to report if it fails.
+#
+# THEORY AND CAVEATS
+#   - Pooling genes is pseudoreplication: genes in one species share ancestry and assembly, so the
+#     pooled p-values are too small. The bootstrap keeps species as the unit of replication, but
+#     species are also phylogenetically related, and nothing here corrects for phylogeny.
+#   - The docstring and report text were written for a 5-species design (3 high vs 2 low). Some fixed
+#     sentences, such as "5 species split 3-2 ... 0.10", appear whatever the real species count is.
+#   - "TEs" are every row build_tfbs_te_gff.py tagged, unfiltered: in D. ananassae 68.9% of them are
+#     Simple_repeat or Low_complexity. The pairing step also discards repeats that straddle the edge of
+#     the 3 kb window. A high/low difference could reflect assembly quality or sequencing platform.
+#   - te_per_kb divides TEs collected from gene +/- 3 kb by the gene-body length alone.
+#   - Exposure labels: the lab never recorded them. In this project they come from the ecology
+#     workbook, through validations/pipeline-run/4-combine-and-compare/make-exposure.py.
+#
+# INPUTS: --config INI (required unless --self-test), --alpha (0.05).
+# OUTPUTS: --output-csv te_cyp_species_summary.csv (one row per species), --output-report
+#   te_cyp_report.md (tables, tests, bootstrap, verdict), --per-gene-csv (optional), and --plot-path
+#   te_cyp_by_species.png (TEs per gene per species; needs matplotlib; --no-plot skips it).
+#   --self-test runs only the statistics cross-checks. Standard library only, apart from matplotlib.
+# Run in this project by validations/pipeline-run/4-combine-and-compare/run-compare.sh.
+# ===== END DOCUMENTATION HEADER =====
 """
 compare_te_cyp_exposure.py
 

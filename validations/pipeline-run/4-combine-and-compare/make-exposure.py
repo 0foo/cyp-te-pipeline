@@ -1,18 +1,26 @@
-# NEW (not a lab file, 2026-11-23): build the high/low exposure assignment for compare_te_cyp_*.py
-# from the ecology workbook (Google Sheet "Drosophilid dataset (datasets_dhakad) - Ecology, Phylogeny &
-# Pest/Insecticide Status", exported to input/ecology/drosophilid-ecology-exposure.xlsx).
+# NEW (not a lab file, 2026-11-23): builds the high/low insecticide-exposure assignment that the
+# compare_te_cyp_*.py scripts need. The lab never recorded one (NOTES.md, gap 2). It comes from the
+# ecology workbook: the Google Sheet "Drosophilid dataset (datasets_dhakad) - Ecology, Phylogeny &
+# Pest/Insecticide Status", exported to input/ecology/drosophilid-ecology-exposure.xlsx.
 #
-# Rule, on sheet 3 col E "Insecticide exposure" (the sheet's own graded call, see its sheet 4):
+# Rule, applied to sheet 3, col E "Insecticide exposure" (the sheet's own graded call; see its sheet 4):
 #   high = "Documented exposure ..." (sprayed, 7 taxa) or "Likely" (breeds in treated habitat)
 #   low  = "Unlikely" or "Very unlikely" (wild habitat, no insecticide use)
-#   none = "Possible", "Possible to likely, as a non-target organism", "Unknown" -> left out of the test
+#   none = "Possible", "Possible to likely, as a non-target organism", or "Unknown": left out of the test
 # Rows the sheet says to keep out of any statistical comparison (the 10 unresolved names, col E
-# "Unknown") are left out. Host-toxin confounders (cactophiles, mycophages, D. sechellia: their
-# detox genes track plant/fungal toxins, sheet 8 table 4) stay in "low" but are flagged.
+# "Unknown") are left out. Host-toxin confounders (cactophiles, mycophages, D. sechellia, whose
+# detox genes track plant or fungal toxins; sheet 8 table 4) stay in "low" but are flagged in the
+# confounder column. Species are matched to sheet rows by a normalised name: the RepeatMasker sample
+# name first, then the GFF label.
 #
-# Writes exposure.tsv (every species in pairs.tsv) and species_config.ini (high/low only, the
-# format compare_te_cyp_exposure.py reads; gff = the combined GFF3 build_tfbs_te_gff.py will write).
-# Run: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 make-exposure.py'
+# OUTPUTS (in /bioinformatics/atallah-repeats/4-combine-and-compare/)
+#   exposure.tsv        every RUN species in pairs.tsv, with its group, the sheet values and the rule
+#                       applied. The 2026-11-23 run gave 51 high, 184 low and 66 none.
+#   species_config.ini  high and low species only, in the INI format compare_te_cyp_exposure.py reads.
+#                       gff = output/combined-gff/<LABEL>.combined.gff3, the file run-build.sh writes.
+# CAVEAT: the labels are this project's reading of an ecology sheet, not a lab decision. The test
+#   results depend on them.
+# Run: nix-shell -p 'python3.withPackages(p: [p.openpyxl])' --run 'python3 -B make-exposure.py'
 import csv, re, collections, openpyxl
 H = "/bioinformatics/atallah-repeats/4-combine-and-compare"
 PAIRS = "/bioinformatics/atallah-repeats/3-pair-te-with-cyp/pairs.tsv"

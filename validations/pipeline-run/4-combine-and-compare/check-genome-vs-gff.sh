@@ -1,4 +1,16 @@
-# usage: gcheck.sh LABEL RM_SAMPLE  -> LABEL seqs_in_fasta gff_seqs gff_seqs_missing genes_past_end
+# NEW (not a lab file, 2026-11-23): checks that a species' genome FASTA and its annotation describe the
+# same assembly, before build_tfbs_te_gff.py extracts promoter and TE windows from that genome.
+# Stage 4 reads sequence from the genome in /mnt/wd/.../2_unmasked_datasets/<RM_SAMPLE>.rm.fna.gz.
+# If a seqid is missing, the script's window extraction silently returns no sequence for that window;
+# if a gene lies past the end of its sequence, the window comes back clipped.
+#
+# HOW: decompresses the genome, sums the sequence length per FASTA header (the first word after ">"),
+#   and then reads the gene lines of the annotation: the renamed GFF, or the un-renamed GFF for
+#   DROSOPHILA_MELANOGASTER.
+# OUTPUT: one tab-separated line: LABEL, sequences in the FASTA, distinct seqids with genes in the GFF,
+#   GFF seqids missing from the FASTA, genes whose end lies past their sequence's end. 0 and 0 in the
+#   last two columns means the pair is consistent.
+# Usage: bash check-genome-vs-gff.sh LABEL RM_SAMPLE   (for example via xargs over exposure.tsv)
 l=$1; s=$2; G=/mnt/wd/bioinformatics/genomes/2_unmasked_datasets/$s.rm.fna.gz
 if [ "$l" = DROSOPHILA_MELANOGASTER ]; then f=/bioinformatics/atallah-repeats/2-rename-genes/input/gffs/DROSOPHILA_MELANOGASTER_final.gff; else f=/bioinformatics/atallah-repeats/3-pair-te-with-cyp/input/renamed-gff/${l}_final_withDmelNames.gff; fi
 zcat "$G" | awk -v gff="$f" -v l="$l" '

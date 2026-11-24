@@ -7,12 +7,24 @@ here. Read `README.md`, `NOTES.md` and `docs/` before changing anything.
 
 ## The scripts are evidence — do not clean them up
 
-Every script in `data-preparation/` and `data-analysis/` is a **byte-for-byte copy of a lab
-original**, with SHA-256 checksums recorded in `docs/03-provenance.md`. Their defects are part
-of the record: the missing `break` in `repeatOpp.py` that emits duplicate rows, the substring
-matching that lets `Cyp4g1` match `Cyp4g15`, the unused `pandas` import. Do not refactor,
-reformat, lint, modernise or "fix" them. A change to any copied file breaks its checksum and
-destroys the provenance claim.
+Every script in `data-preparation/` and `data-analysis/` is a copy of a lab original, with
+SHA-256 checksums recorded in `docs/03-provenance.md`. Since 2026-11-24, at the user's request,
+each lab copy carries a **marked documentation header**, one contiguous comment block between
+`# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====` and
+`# ===== END DOCUMENTATION HEADER =====`. It sits after the `#!` line where there is one, and in
+`worker.sh` after the script's own header comment, because `usage()` prints lines 3–34 with `sed`.
+That block is the only permitted difference. Nothing else in a copy may change.
+
+The provenance check is done on the file **with the header block removed**, for example
+`sed '/^# ===== DOCUMENTATION HEADER (added 2026-11-24/,/^# ===== END DOCUMENTATION HEADER =====/d' FILE | sha256sum`.
+The result must match the "original" column of `docs/03-provenance.md`. Edits inside the header
+are allowed, but they change the "as now" checksum, which must then be updated. They can also
+change the line numbers of the hardcoded paths (next section).
+
+The defects are part of the record: the missing `break` in `repeatOpp.py` that emits duplicate
+rows, the substring matching that lets `Cyp4g1` match `Cyp4g15`, the unused `pandas` import. Do
+not refactor, reformat, lint, modernise or "fix" them. Any change outside the header block
+breaks the checksum and destroys the provenance claim.
 
 The single exception is `data-preparation/3-rename-genes/config.py`, a labelled reconstruction
 of a lab file that was lost. It is documented as such in `docs/03-provenance.md`.
@@ -23,7 +35,10 @@ Anything genuinely new goes in a **new file**, labelled as new — never by edit
 
 `repeatOpp.py`, `Locate_TE.py` and `CleanAnnasse.py` carry the lab's Windows paths at module
 scope and must be edited before each run; the exact lines are tabulated in
-`docs/02-data-analysis.md`. This is deliberate and stays that way. Do not parameterise them,
+`docs/02-data-analysis.md`. With the documentation headers, those lines are now 46/48, 49/52 and
+41/43 (they were 4/6, 2/5 and 1/3). `run-pairing.sh` rewrites them by line number in both its copies,
+`validations/pipeline-run/3-pair-te-with-cyp/` and `/bioinformatics/atallah-repeats/3-pair-te-with-cyp/`.
+If a header changes length, update the docs table and both runners. This is deliberate and stays that way. Do not parameterise them,
 add `argparse`, or read from the environment.
 
 If a hands-off run is needed, the approach recorded in `NOTES.md` is a **wrapper** that writes

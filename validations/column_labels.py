@@ -1,4 +1,15 @@
-# NEW (2026-11-24): descriptive column headers for cyp-te-validation.xlsx (internal name -> header).
+# NEW (not a lab file, 2026-11-24): the column headers and visible columns for cyp-te-validation.xlsx.
+#
+# This module only holds data; it does nothing when run. It is imported by make-validation-sheet.py,
+# which builds the workbook, and by relabel.py, which re-applies the labels to a workbook already built.
+#   LABELS   maps each internal column name (as computed in make-validation-sheet.py) to the
+#            descriptive header shown in the sheet. Unlisted columns keep their internal name.
+#   TE_KEEP  lists, in order, the columns shown on the Transposons tab. The other Transposons columns
+#            are computed but not shown. The Cyp tab shows every column.
+# To rename or show columns, edit this file and then run `python3 -B relabel.py`. That takes seconds,
+# compared with about 10 minutes for a full make-validation-sheet.py run.
+# "True TE" here means any RepeatMasker class except Simple_repeat, Low_complexity, Satellite,
+# rRNA/tRNA/snRNA/scRNA/srpRNA and ARTEFACT (the NONTE set in make-summary.py and make-validation-sheet.py).
 LABELS = {
     # both tabs
     "species": "Species",

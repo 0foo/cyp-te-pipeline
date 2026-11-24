@@ -1,10 +1,26 @@
-# NEW (not a lab file, 2026-11-22): pair each RepeatMasker sample with its renamed annotation and
-# check they describe the same assembly. Writes pairs.tsv, which run-pairing.sh reads.
-#   label: species name normalised (accession/'nanopore' dropped), longest GFF label it starts with
-#   checks: fraction of the GFF's genes on sequences present in the rm.out, genes past a sequence's end
-#   status: RUN (frac >= 0.90, nothing past an end) | SKIP_WRONG_ASSEMBLY (frac < 0.50: the annotation
-#           is of a different assembly of that species) | CHECK (in between) | NO_ANNOTATION
-#           | DUPLICATE_LABEL (more than one sample would RUN for one annotation; choose by hand)
+# NEW (not a lab file, 2026-11-22): pairs each stage 1 RepeatMasker sample with its renamed annotation,
+# and checks that the two describe the same assembly. It writes pairs.tsv, which run-pairing.sh,
+# make-exposure.py and make-summary.py read.
+#
+# WHY: Locate_TE.py compares seqids and coordinates between the annotation and the .rm.out. If the
+#   annotation belongs to a different assembly of the species, nothing matches, or worse, the wrong
+#   coordinates match, and the run still finishes without any error.
+# HOW
+#   label  the sample name normalised (accession or 'nanopore' suffix dropped, non-alphanumerics -> _,
+#          upper case), matched to the longest renamed-GFF label it equals or starts with.
+#   checks the sequence lengths implied by the .rm.out (end + left); the fraction of the GFF's genes on
+#          sequences present in the .rm.out; genes ending past a sequence's end; and Cyp genes (any
+#          Reg_Gene_Full.txt name in the attributes, the same substring rule as repeatOpp.py) and how
+#          many of them are on .rm.out sequences.
+#   status RUN (fraction >= 0.90 and nothing past an end) | SKIP_WRONG_ASSEMBLY (fraction < 0.50: the
+#          annotation is of a different assembly) | CHECK (in between) | NO_ANNOTATION |
+#          DUPLICATE_LABEL (more than one sample would RUN for one annotation; choose by hand).
+#   The full run gave 301 RUN, 3 SKIP_WRONG_ASSEMBLY and 15 NO_ANNOTATION.
+# INPUTS: 3-pair-te-with-cyp/input/rm-out/*.rm.out and input/renamed-gff/*_final_withDmelNames.gff;
+#   D. melanogaster uses its own un-renamed GFF.
+# OUTPUT: 3-pair-te-with-cyp/pairs.tsv (rm_sample, gff_label, gene_frac_on_rm_contigs,
+#   genes_past_seq_end, cyp_genes, cyp_on_rm_contigs, status), plus a summary on stdout.
+# Usage: python3 -B make-pairs.py
 import os, re, csv, collections
 A = "/bioinformatics/atallah-repeats"
 H = f"{A}/3-pair-te-with-cyp"

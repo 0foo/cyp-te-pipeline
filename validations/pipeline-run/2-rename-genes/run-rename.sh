@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
-# Stage 2 runner (new, not a lab file). Splits the annotations into NB batches, each its own
-# GFF_INPUT_DIR of symlinks to input/gffs/, and runs the unmodified NEW_Step_5 script once per
-# batch, in parallel. Output goes to ../3-pair-te-with-cyp/input/renamed-gff/.
-# Usage: bash run-rename.sh [NB]   (default 6)
+# Stage 2 runner (new, not a lab file, 2026-11-22): renames every species' genes with D. melanogaster
+# ortholog names (data preparation step 3) by running the repo's NEW_Step_5 script UNCHANGED.
+#
+# NEW_Step_5 processes every <SPECIES>_final.gff in GFF_INPUT_DIR, one at a time (about 10 minutes
+# each), so this runner parallelises it. It deals the annotations in input/gffs/ out into NB batch
+# folders of symlinks: largest file first, round-robin, so the batches are of similar total size.
+# It then starts one NEW_Step_5 process per batch, through config.py's environment overrides:
+#   STEP5_INPUT=input/hog-table/HOG_OG_association_gene_names_without_duplicates_10_31.tsv
+#   GFF_INPUT_DIR=work/batch-<n>   GFF_OUTPUT_DIR=../3-pair-te-with-cyp/input/renamed-gff
+# Each process still walks every HOG-table column and prints "Skipping ..." for the species that are
+# not in its batch.
+# OUTPUT: <SPECIES>_final_withDmelNames.gff in renamed-gff/, and logs/batch-<n>.log per batch. It
+#   prints one rc line when all batches are done (rc=1 if any batch failed).
+# Usage: bash run-rename.sh [NB]   (default 6; run from anywhere, paths are absolute)
 set -euo pipefail
 NB=${1:-6}
 S=/bioinformatics/atallah-repeats/2-rename-genes

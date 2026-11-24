@@ -1,4 +1,27 @@
 #!/usr/bin/env bash
+# ===== DOCUMENTATION HEADER (added 2026-11-24; not part of the lab original) =====
+# rm-manager.sh: data preparation, step 1. Supervisor that launches and stops several worker.sh
+# processes. Copied from the repeat-modeler-automation repository.
+#
+# PIPELINE POSITION
+#   It does no science itself. It runs WORKERS copies of worker.sh, and each copy turns gzipped genome
+#   FASTAs into a RepeatModeler library and a RepeatMasker <sample>.rm.out table: the TE locations
+#   that data analysis step 1 (Locate_TE.py) pairs with Cyp genes.
+#
+# HOW IT WORKS (details in the header below)
+#   start   launches each missing worker slot as a detached daemon (setsid nohup), staggered, with one
+#           pid file per slot in RUN_DIR. Slots that are already running are left alone.
+#   stop    sends SIGTERM to every worker that has a pid file. Each worker stops its container and
+#           releases its claim without writing a marker, so the interrupted stage is retried later.
+#   status  (the default) checks the pid files and counts the claimed/, done/, masked/ and failed/
+#           entries in STATE_DIR.
+#   The workers coordinate only through directory names in STATE_DIR; this script keeps no other state.
+#
+# INPUTS: one word (start | stop | status), plus rmodeler.conf next to this script. That file is
+#   mandatory and is read with the same strict reader as worker.sh. No options, no environment overrides.
+# OUTPUTS: pid files in RUN_DIR, worker logs in LOG_DIR, and status text on stdout.
+# Sizing: total cores used is about WORKERS x THREADS (for example 4 x 6 on a 24-core box).
+# ===== END DOCUMENTATION HEADER =====
 #==============================================================================
 # rm-manager.sh
 #
